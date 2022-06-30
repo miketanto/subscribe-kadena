@@ -1,0 +1,31 @@
+(begin-tx)
+(env-data
+  { 'subscribe-vault-admin: []
+  ,'ns-admin-keyset: []
+  , 'ns-genesis-keyset:[]
+  , 'ns-operate-keyset:[] })
+(load "root/fungible-v2.pact")
+(load "root/gas-payer-v1.pact")
+(load "root/coin.pact")
+(load "root/ns.pact")
+
+(define-namespace 'kip (sig-keyset) (sig-keyset))
+
+(load "kip/account-protocols-v1.pact")
+(load "kip/manifest.pact")
+(load "kip/token-policy-v1.pact")
+(load "kip/poly-fungible-v2.pact")
+
+(commit-tx)
+
+(begin-tx)
+(env-data
+ { 'subscribe-vault-admin: ["subscribe-vault-admin"]
+ , 'upgrade: false })
+ (env-sigs [
+   { 'key: 'subscribe-vault-admin
+    ,'caps: []
+    }])
+(load "SubscribeVault.pact")
+(commit-tx)
+

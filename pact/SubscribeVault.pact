@@ -1,11 +1,13 @@
 (module subscribe-vault GOVERNANCE
     @doc "Policy for transferable subscriber protocol"
 
+    (use kip.poly-fungible-v2 [sender-balance-change receiver-balance-change])
+    
   (defcap GOVERNANCE ()
     ;; Enforces keyset that could update policy
-    (enforce-guard (keyset-ref-guard 'marmalade-admin )))
+    (enforce-guard (keyset-ref-guard 'subscribe-vault-admin )))
 
-    (defschema account-details
+    (defschema account-details-fungible
         @doc
           " Account details: fungible token, account name, balance, and guard."
         @model
@@ -18,7 +20,7 @@
         balance:decimal
         guard:guard)
 
-    (deftable ledger:{account-details})
+    (deftable ledger:{account-details-fungible})
 
     (defun key:string ( id:string account:string )
         @doc "DB key for ledger account"
@@ -32,7 +34,6 @@
           amount:decimal
         )
         @managed amount TRANSFER-mgr
-        (enforce-unit id amount)
         (enforce (> amount 0.0) "Amount must be positive")
         (compose-capability (DEBIT id sender))
         (compose-capability (CREDIT id receiver))
@@ -75,7 +76,7 @@
       ;;
       ;; Implementation caps
       ;;
-    
+
       (defcap ROTATE (id:string account:string)
         @doc "Autonomously managed capability for guard rotation"
         @managed
@@ -94,8 +95,10 @@
       (defcap UPDATE_SUPPLY ()
         "private cap for update-supply"
         true)
-    
-    
+
+        (defun rotate:bool (id:string account:string new-guard:guard)
+        true
+        )
     ;;Create Vault Treasury Account
     (defconst VAULT_TREASURY 'subscribe-vault-treasury )   
     (defun create-vault-treasury-guard:guard ()
@@ -104,6 +107,7 @@
     
       (defun vault-treasury-guard ()
         ;;TBD what is needed in this
+        true
       )
     
       (defun init ()
@@ -111,14 +115,15 @@
       )
     (defconst KDA_COIN_MODULE coin)
     (defun get-account (account:string fungible-id:string)
-        (with-default-read ledger (key account fungible-id) { "balance": -1.0 } { "balance":= bal, "fungible":= fungible }
+        (with-default-read ledger (key account fungible-id) { "balance": -1.0 } { "balance":= balance, "fungible":= fungible }
         balance)
     )        
+    (defcap KDA_DEPOSIT (id:string receiver:string) true)
     (defun deposit (sender:string sender-guard:guard amount:decimal)
-        (with-capability KDA_DEPOSIT
+        (with-capability (KDA_DEPOSIT "new" "thing")
             ;;Transfer first
             ;;Need to investigate if I could just use the fungible contract name instead of KDA
-            (coin::transfer buyer recipient amount)
+            (coin.transfer sender VAULT_TREASURY amount)
             (if (< (get-account sender "KDA") 0)
             ;;If no account yet
             (insert ledger (key sender "KDA") {"balance":amount, "account":sender, "guard":sender-guard, "fungible":KDA_COIN_MODULE})
@@ -127,6 +132,6 @@
                 (update ledger (key sender "KDA") {"balance":(+ old-balance amount)})
             )
             )
-    ))
-
+    (format "Depositted {} KDA" [amount]))
+    )
 )
