@@ -8,6 +8,9 @@
     ;; Enforces keyset that could update policy
     (enforce-guard (keyset-ref-guard 'marmalade-admin )))
 
+  ;;Supported Fungible-v2 token import
+  (use coin)
+
   ;;Token Policy Standard Interface
   ;; Enforce init, mint, sale, offer, buy, transfer, burn
   (implements kip.token-policy-v1)
@@ -17,6 +20,7 @@
 
   ;;Schema for subscription policy table
   ;;Data that will vary from policy to policy
+  ;;Owner Royalty --- royalty set on rent to other people
   (defschema policy-schema
     provider-guard:guard
     owner-guard:guard
@@ -25,12 +29,14 @@
     owner-royalty:decimal
     trial-period:time
     grace-period:time
-    pausable:bool
+    pausable:string
     interval:time
     expiry-time:time
     first-start-time:time
-    min-supply:decimal
-    max-suppy:decimal
+    rent-start-time:time
+    rent-end-time:time
+    min-amount:decimal
+    max-supply:decimal
   )
   (deftable policies:{policy-schema})
 
@@ -54,45 +60,53 @@
    )
 
    (defun enforce-init:bool
-    ( token:object{token-info}
-    )
+    ( token:object{token-info})
+
     (enforce-ledger)
-    (enforce-protocol)
+    ;;(enforce-guard (read-keyset 'provider-guard ))
+
     (let* ( (provider-guard:guard (read-keyset 'provider-guard ))
             (owner-guard:guard (read-keyset 'owner-guard ))
             (renter-guard:guard (read-keyset 'renter-guard ))
             (provider-royalty:decimal (read-decimal 'provider-royalty ))
             (owner-royalty:decimal (read-decimal 'owner-royalty ))
-            (trial-period:time (read-time 'trial-period ))
-            (grace-period:time (read-time 'grace-period ))
-            (pausable:bool (read-bool 'pausable ))
-            (expiry-time:time (read-time 'expiry-time ))
-            (interval:time (read-time 'interval ))
-            (first-start-time:time (read-time 'first-start-time ))
-            (min-supply:decimal (read-decimal 'min-supply ))
+            (trial-period:time (time (read-string 'trial-period )))
+            (grace-period:time (time (read-string 'grace-period )))
+            (pausable:string (read-msg 'pausable ))
+            (expiry-time:time (time (read-string 'expiry-time )))
+            (interval:time (time (read-string 'interval )))
+            (first-start-time:time (time (read-string 'first-start-time )))
+            (rent-start-time:time (time "0000-00-00T00:00:00Z"))
+            (rent-end-time:time (time "0000-00-00T00:00:00Z"))
+            (min-amount:decimal (read-decimal 'min-amount ))
             (max-supply:decimal (read-decimal 'max-supply ))
             )
     (enforce (>= min-amount 0.0) "Invalid min-amount")
     (enforce (>= max-supply 0.0) "Invalid max-supply")
-    (insert policies (at 'id token)
-      { 'provider-guard: provider-guard
-      ,'owner-guard: owner-guard
-      ,'renter-guard: renter-guard
-      ,'provider-royalty: provider-royalty
-      ,'owner-royalty: owner-royalty
-      ,'trial-period: trial-period
-      ,'grace-period: grace-period
-      ,'pausable: pausable
-      ,'expiry-time : expiry-time
-      ,'interval : interval
-      ,'first-start-time : first-start-time
-      , 'max-supply: max-supply
-      , 'min-amount: min-amount })
+
+    (insert policies (at 'id token) 
+    {"provider-guard":provider-guard, 
+    "owner-guard":owner-guard,
+    "renter-guard":renter-guard,
+    "provider-royalty":provider-royalty,
+    "owner-royalty":owner-royalty,
+    "trial-period":trial-period,
+    "grace-period":grace-period,
+    "pausable":pausable,
+    "expiry-time":expiry-time,
+    "interval":interval,
+    "first-start-time":first-start-time, 
+    "rent-start-time":rent-start-time, 
+    "rent-end-time":rent-end-time, 
+    "min-amount":min-amount, 
+    "max-supply":max-supply}
+    )
     true)
   )
 
   ;;Only subscription module can mint
   ;;Mint Guard is the subscription module
+  ;;Need a price environment variable
   (defun enforce-mint:bool
     ( token:object{token-info}
       account:string
@@ -100,17 +114,26 @@
       amount:decimal
     )
     (enforce-ledger)
-    (enforce-protocol)
     (bind (get-policy token)
-      { 'owner-guard:=owner-guard:guard
-      , 'min-amount:=min-amount:decimal
-      , 'max-supply:=max-supply:decimal
-      }
-      ;;Enforce that the person has enough money in the vault: TODO
-      ;;Move money from consumer vault to provider vault ()
-      (enforce (>= amount min-amount) "mint amount < min-amount")
-      (enforce (<= (+ amount (at 'supply token)) max-supply) "Exceeds max supply")
-  ))
+    { 'owner-guard:=owner-guard:guard
+    , 'provider-guard := provider-guard:guard
+    , 'min-amount:=min-amount:decimal
+    , 'max-supply:=max-supply:decimal
+    }
+    ;;Only designated owner could mint
+    (enforce-guard owner-guard)
+    ;;See if there is enough funds in the buyer account
+    ;;Transfer funds to the provider account
+    (let* 
+      ((token-mint-price:decimal (read-decimal 'token-mint-price ))
+       (provider-account:string (read-msg 'provider-account )))
+      ;token-mint-price
+      ;;Owner of coins (e.g. consumer) 
+      (coin.transfer account provider-account token-mint-price)
+    
+    (enforce (>= amount min-amount) "mint amount < min-amount")
+    (enforce (<= (+ amount (at 'supply token)) max-supply) "Exceeds max supply")
+)))
 
   ;;Types of Transfers
   ;; On resubscribe - the protocol has a pact that 
@@ -122,45 +145,41 @@
   ;; 2.EXTEND -- Transfer back to owner if he resubscribes
   ;; 3.LEND -- Transfer to friend (with return pact)--TODO
   ;; 4.TRIAL-REFUND -- Transfer back to protocol for a refund--TODO
-  (defcap RETURN (token:object{token-info} receiver-guard:guard)
-      @managed
-      (bind (get-policy token)
-      { 'owner-guard:=owner-guard:guard 
-        ,'expiry-time := expiry-time:time
-      }
-      (enforce-guard owner-guard)
-      (enforce (= receiver-guard (keyset-ref-guard 'protocol-keyset )) "Only could return to protocol")
-      (bind (chain-data){ 'block-time := current-time}
-        (enforce (> (time current-time) expiry-time) "Subscription not yet expired")
-      )
+  ;;(defcap RETURN (token:object{token-info} receiver-guard:guard)
+    ;;  @managed
+      ;;(bind (get-policy token)
+      ;;{ 'owner-guard:=owner-guard:guard 
+        ;;,'expiry-time := expiry-time:time
+      ;;}
+      ;;(enforce-guard owner-guard)
+      ;;(enforce (= receiver-guard (keyset-ref-guard 'protocol-keyset )) "Only could return to protocol")
+      ;(bind (chain-data){ 'block-time := current-time}
+       ; (enforce (> (time current-time) expiry-time) "Subscription not yet expired")
+      ;)
       
-    )
-  )
+    ;;)
+ ;; )
 
-  (defcap EXTEND (token:object{token-info} receiver-guard:guard pact-id:string)
-    @managed ;; one-shot for a given amount
-    (bind (get-policy token)
-      { 'owner-guard:=owner-guard:guard }
+  ;;(defcap EXTEND (token:object{token-info} receiver-guard:guard pact-id:string)
+  ;;  @managed ;; one-shot for a given amount
+  ;;  (bind (get-policy token)
+   ;;   { 'owner-guard:=owner-guard:guard }
       ;;Only protocol account can extend
-      (enforce-extension-pact pact-id)
-      (enforce-protocol)
-      (enforce (= owner-guard receiver-guard) "Only can extend to bound consumer")
-      (compose-capability UPDATE_EXPIRY)
-  ))
+   ;;   (enforce-extension-pact pact-id)
+    ;;  (enforce-protocol)
+     ;; (enforce (= owner-guard receiver-guard) "Only can extend to bound consumer")
+      ;;(compose-capability UPDATE_EXPIRY)
+ ;; ))
 
-  (defcap UPDATE_EXPIRY ()
+  (defcap UPDATE_EXPIRY()
   "private cap for update-expiry"
   true)
 
-  (defun update-expiration (token:object{token-info})
-    (require-capability UPDATE_EXPIRY)
-    (bind (get-policy token) {
-      'expiry-time := old-expiry-time
-      ,'interval := interval
-      }
-      (update policies (at 'id token) { "expiry-time": (+ old-expiry-time interval)})
-    )
-  )
+ ;; (defun update-expiration (token:object{token-info})
+   ;; (require-capability (UPDATE_EXPIRY))
+    ;;(bind (get-policy token) {"expiry-time":= old-expiry-time, "interval":= interval})
+    ;;(update policies (at 'id token) { "expiry-time" : old-expiry-time })
+ ;; )
 
   (defun enforce-transfer:bool
     ( token:object{token-info}
@@ -169,17 +188,17 @@
       receiver:string
       amount:decimal )
     (enforce-ledger)
-    (with-capability (RETURN token guard)
+   ;; (with-capability (RETURN token guard)
       ;;For the RETURN transfer part of the pact
-      true
-    )
-    (with-capability (EXTEND token guard (read-msg 'pact-id ))
+    ;;  true
+    ;;)
+    ;;(with-capability (EXTEND token guard (read-msg 'pact-id ))
         ;;Update expiration date has been confirmed that the sender is the protocol
-        (update-expiration token)
-    )
-    (with-capability ()
+      ;;  (update-expiration token)
+    ;;)
+    ;;(with-capability ()
       
-    )
+    ;;)
   )
 
   (defcap QUOTE:bool
@@ -220,7 +239,7 @@
     )
     @doc "Capture quote spec for SALE of TOKEN from message"
     (enforce-ledger)
-    (enforce-sale-pact sale-id)
+    (enforce-extension-pact sale-id)
     (let* ( (spec:object{quote-spec} (read-msg QUOTE-MSG-KEY))
             (fungible:module{fungible-v2} (at 'fungible spec) )
             (price:decimal (at 'price spec))
@@ -246,7 +265,7 @@
       amount:decimal
       sale-id:string )
     (enforce-ledger)
-    (enforce-sale-pact sale-id)
+    (enforce-extension-pact sale-id)
     (with-read quotes sale-id { 'id:= qtoken, 'spec:= spec:object{quote-spec} }
       (enforce (= qtoken (at 'id token)) "incorrect sale token")
       (bind spec

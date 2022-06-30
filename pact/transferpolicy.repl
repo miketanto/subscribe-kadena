@@ -1,0 +1,169 @@
+(begin-tx)
+(env-data
+  { 'ns-admin-keyset: []
+  , 'ns-genesis-keyset:[]
+  , 'ns-operate-keyset:[] })
+(load "root/fungible-v2.pact")
+(load "root/gas-payer-v1.pact")
+(load "root/coin.pact")
+(load "root/ns.pact")
+
+(define-namespace 'kip (sig-keyset) (sig-keyset))
+
+(load "kip/account-protocols-v1.pact")
+(load "kip/manifest.pact")
+(load "kip/token-policy-v1.pact")
+(load "kip/poly-fungible-v2.pact")
+
+(define-namespace 'util (sig-keyset) (sig-keyset))
+(load "util/fungible-util.pact")
+(commit-tx)
+
+(begin-tx)
+(env-data
+ { 'marmalade-admin: ["marmalade-admin"]
+ , 'marmalade-ns-user: ["marmalade-admin"]
+ , 'marmalade-ns-admin: ["marmalade-admin"]
+ , 'ns: "marmalade"
+ , 'upgrade: false })
+ (env-sigs [
+   { 'key: 'marmalade-admin
+    ,'caps: []
+    }])
+(load "ns-marmalade.pact")
+(load "ledger.pact")
+(load "TransferableSubscribePolicyV1.pact")
+(commit-tx)
+
+
+;SETUP funding account,
+;Fund Bob
+;Alice is the provider creating the token
+;Bob mints the token(Only he can mint it)
+(begin-tx)
+(env-sigs [])
+(load "test/ledger-test-coin.pact")
+(load "test/fungible.repl")
+(use kip.token-manifest)
+(env-data  { 'bob-guard: ["bob"]
+, 'tom-guard: ["tom"]
+, 'alice-guard: ["alice"]
+, 'mint-guard: ["mint"]
+, 'burn-guard: ["burn"]
+, 'sale-guard: ["sale"]
+, 'transfer-guard: ["transfer"],
+"provider-guard": ["alice"],
+"token-mint-price": 5.0,
+"provider-account":"alice" ,
+"owner-guard":["bob"],
+"renter-guard":[],
+"provider-royalty":0.0,
+"owner-royalty":0.0,
+"trial-period":"2016-07-22T11:26:35Z",
+"grace-period":"2016-07-22T11:26:35Z",
+"pausable":"false",
+"expiry-time":"2016-07-22T11:26:35Z",
+"interval":"2016-07-22T11:26:35Z",
+"first-start-time":"2016-07-22T11:26:35Z", 
+"rent-start-time":"2016-07-22T11:26:35Z", 
+"rent-end-time":"2016-07-22T11:26:35Z", 
+"min-amount":0.0, 
+"max-supply":10000000000.0})
+(marmalade.ledger.create-token
+  TOKEN
+  12
+  (create-manifest (uri "text" "token") [])
+  free.transferable-subscribe-policy)
+(test-capability (coin.CREDIT FUNDER_ACCT))
+    (expect "fund success" true
+    (test-fund FUNDER_ACCT FUNDER_GUARD FUNDER_BALANCE))
+    (coin.create-account "bob" (read-keyset "bob-guard"))
+    (coin.create-account "alice" (read-keyset "alice-guard"))
+
+    (test-capability (ledger-test-coin.DELEGATE FUNDER_ACCT 0))
+    (test-capability (ledger-test-coin.TRANSFER FUNDER_ACCT "bob" 10.0))
+    (test-capability (coin.TRANSFER FUNDER_ACCT "bob" 10.0))
+    (ledger-test-coin.transfer FUNDER_ACCT "bob" 10.0)
+
+(env-keys ["alice"])
+(use marmalade.ledger)
+(use kip.token-manifest)
+
+(expect-failure
+  "alice creates a new token project-0 before initialization"
+  "Manifest is not valid"
+  (create-token
+    "project-0"
+    12
+    {"uri": (uri "text" "project-0-uri"),
+     "hash": "wrong-hash",
+     "data": []}
+    free.transferable-subscribe-policy)
+  )
+
+(expect
+  "alice creates a new token project-0"
+  true
+  (create-token
+    "project-0"
+    12
+    (create-manifest (uri "text" "project-0-uri") [])
+    free.transferable-subscribe-policy)
+  )
+
+  (env-keys ["bob"])
+  
+  (env-sigs [
+    { 'key: "bob"
+    , 'caps:
+      [
+       (MINT "project-0" "bob" 1.0),
+       (coin.TRANSFER "bob" "alice" 10.0)
+       (TRANSFER "project-0" "bob" "alice" 2.0),
+       (TRANSFER "project-0" "bob" "project-0:1" 1.0),
+       (TRANSFER "project-0:1" "bob" "alice"  0.000000002),
+       (MINT "project-0:1" "bob" 1.0)
+      ]
+    },
+    {
+      'key: "project-0:1",
+      'caps: [
+       (MINT "project-0:1" "bob" 1.0)
+      ]
+    },
+    {
+      'key: "alice",
+      'caps: [
+        (TRANSFER "project-0:1" "alice" "project-0:1:1" 1.0)
+        (MINT "project-0" "alice" 5.0)
+      ]
+    },
+    { 'key: "mint", 'caps: [] },
+    { 'key: "transfer", 'caps: [] }
+    ])
+
+  (expect
+    "bob mints a 1.0 of token"
+    true
+    (mint "project-0" "bob" (read-keyset 'bob-guard ) 1.0))
+  
+    (env-keys ["tom"])
+  
+    (env-sigs [
+      { 'key: "tom"
+      , 'caps:
+        [
+         (MINT "project-0" "tom" 1.0),
+         (coin.TRANSFER "bob" "alice" 10.0)
+         (TRANSFER "project-0" "bob" "alice" 2.0),
+         (TRANSFER "project-0" "bob" "project-0:1" 1.0),
+         (TRANSFER "project-0:1" "bob" "alice"  0.000000002),
+         (MINT "project-0:1" "bob" 1.0)
+        ]
+      }
+     ])
+    (expect-failure
+        "tom tries to mint 1.0 of token with bob as designate owner"
+        ": Failure: Tx Failed: Keyset failure (keys-all): [bob]"
+        (mint "project-0" "tom" (read-keyset 'tom-guard ) 1.0))
+(commit-tx)
