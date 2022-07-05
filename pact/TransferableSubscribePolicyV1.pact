@@ -144,17 +144,17 @@
   ;;
   (defcap EXTEND (token:object{token-info} extender-account:string)
      @managed
-    (bind (get-policy token)
-      { 'owner-guard:=owner-guard:guard
-        'provider-guard:=provider-guard:guard}
+    ;(bind (get-policy token)
+      ;{ 'owner-guard:=owner-guard:guard
+        ;'provider-guard:=provider-guard:guard}
       ;;Only owner can extend
       ;;(enforce-guard provider-guard)
-      (let* 
-        ((extender-guard:guard (at 'guard (coin.details extender-account))))
-        (enforce (= extender-guard owner-guard))
-      )
-      (compose-capability UPDATE_EXPIRY)
-  ))
+      ;(let* 
+        ;((extender-guard:guard (at 'guard (coin.details extender-account))))
+        ;(enforce (= extender-guard owner-guard))
+      ;))
+      (compose-capability (UPDATE_EXPIRY))
+  )
 
   (defcap UPDATE_EXPIRY()
   "private cap for update-expiry"
@@ -183,24 +183,24 @@
       ;;For the RETURN transfer part of the pact
     ;;  true
     ;;)
-    (with-capability (REGULAR)
-        (bind (get-policy token)
-          { 'owner-guard:=owner-guard:guard}
+    ;(with-capability (REGULAR)
+        ;(bind (get-policy token)
+          ;{ 'owner-guard:=owner-guard:guard}
           ;;Only owner can extend
           ;;(enforce-guard provider-guard)
-         (enforce-guard owner-guard)
-      )
-    )
-    ;(with-capability (EXTEND token (read-msg 'extender-account ))
-        ;;Update expiration date has been confirmed that the sender is the protocol
-       ;;See if there is enough funds in the buyer account
-      ;;Transfer funds to the provider account
-      ;(let* 
-       ; ((token-extend-price:decimal (read-decimal 'token-extend-price ))
-        ;(extender-account:string (read-msg 'extender-account )))
-      ;(coin.transfer extender-account sender token-extend-price))
-      ;(update-expiration token)
+         ;(enforce-guard owner-guard)
+      ;)
     ;)
+    (with-capability (EXTEND token (read-msg 'extender-account ))
+        ;;Update expiration date has been confirmed that the sender is the protocol
+        ;;See if there is enough funds in the buyer account
+        ;;Transfer funds to the provider account
+      (let* 
+        ((token-extend-price:decimal (read-decimal 'token-extend-price ))
+        (extender-account:string (read-msg 'extender-account )))
+      (coin.transfer extender-account sender token-extend-price))
+      (update-expiration token)
+    )
   )
 
   (defcap QUOTE:bool

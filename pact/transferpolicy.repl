@@ -67,7 +67,7 @@
 "rent-end-time":"2016-07-22T11:26:35Z", 
 "min-amount":0.0, 
 "max-supply":10000000000.0,
-"extender-account":"bob",
+"extender-account":"netflix",
 "token-extend-price":1.0})
     ;;Fund the Funder Account
     (test-capability (coin.CREDIT FUNDER_ACCT))
@@ -153,21 +153,53 @@
         (mint "bob-bronze-subscription" "tom" (read-keyset 'tom-guard ) 1.0))
 
     ;;Test Regular transfer for future extension
+    ;;Extender = netflix-->need to pay 
     (env-keys ["bob"])
 
     (env-sigs [
         { 'key: "bob"
         ,'caps:
             [
-            (free.transferable-subscribe-policy.REGULAR)
             (TRANSFER "bob-bronze-subscription" "bob" "netflix" 1.0),
+            (free.transferable-subscribe-policy.EXTEND  (at 'token (get-policy-info 'bob-bronze-subscription )) "netflix")
+            ]
+        },
+        { 'key: "netflix"
+        ,'caps:
+            [
+            (coin.TRANSFER "netflix" "bob" 1.0)
             ]
         }
     ])
+    (expect
+        "bob initially has 5 kda"
+        5.0
+        (coin.get-balance "bob")
+    )
+    (expect
+        "netflix initially has 15 kda"
+        15.0
+        (coin.get-balance "netflix")
+    )
 
     (expect
         "bob transfers 1.0 of token to netflix"
         true
         (transfer-create "bob-bronze-subscription" "bob" "netflix" (read-keyset 'netflix-guard ) 1.0))
 
+    (expect
+        "bob supposedly has 6 kda"
+        6.0
+        (coin.get-balance "bob")
+    )
+    (expect
+        "netflix supposedly has 14 kda"
+        14.0
+        (coin.get-balance "netflix")
+    )
+    (expect
+        "netflix now has the bronze subscription"
+        1.0
+        (get-balance "bob-bronze-subscription" "netflix")    
+    )
 (commit-tx)
