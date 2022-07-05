@@ -129,57 +129,48 @@
        (provider-account:string (read-msg 'provider-account )))
       ;token-mint-price
       ;;Owner of coins (e.g. consumer) 
-      (coin.transfer account provider-account token-mint-price)
+      (coin.transfer account provider-account token-mint-price))
     
     (enforce (>= amount min-amount) "mint amount < min-amount")
     (enforce (<= (+ amount (at 'supply token)) max-supply) "Exceeds max supply")
-)))
+))
 
   ;;Types of Transfers
-  ;; On resubscribe - the protocol has a pact that 
-  ;;    1. Consumer signs and transfers to the protocol(RETURN)
-  ;;    2. Consumer gets charged in the vault
-  ;;    2. Protocol transfers back while changing expiry(EXTEND)
-  ;;    Note: the transfer back to the owner is called the EXTEND Capability
-  ;; 1.RETURN -- Need to know that it is past expiry
-  ;; 2.EXTEND -- Transfer back to owner if he resubscribes
-  ;; 3.LEND -- Transfer to friend (with return pact)--TODO
-  ;; 4.TRIAL-REFUND -- Transfer back to protocol for a refund--TODO
-  ;;(defcap RETURN (token:object{token-info} receiver-guard:guard)
-    ;;  @managed
-      ;;(bind (get-policy token)
-      ;;{ 'owner-guard:=owner-guard:guard 
-        ;;,'expiry-time := expiry-time:time
-      ;;}
-      ;;(enforce-guard owner-guard)
-      ;;(enforce (= receiver-guard (keyset-ref-guard 'protocol-keyset )) "Only could return to protocol")
-      ;(bind (chain-data){ 'block-time := current-time}
-       ; (enforce (> (time current-time) expiry-time) "Subscription not yet expired")
-      ;)
-      
-    ;;)
- ;; )
-
-  ;;(defcap EXTEND (token:object{token-info} receiver-guard:guard pact-id:string)
-  ;;  @managed ;; one-shot for a given amount
-  ;;  (bind (get-policy token)
-   ;;   { 'owner-guard:=owner-guard:guard }
-      ;;Only protocol account can extend
-   ;;   (enforce-extension-pact pact-id)
-    ;;  (enforce-protocol)
-     ;; (enforce (= owner-guard receiver-guard) "Only can extend to bound consumer")
-      ;;(compose-capability UPDATE_EXPIRY)
- ;; ))
+  ;; A.Expiry Transfers
+  ;;    1.WITHDRAW -- Need to know that it is past expiry
+  ;;    2.EXTEND -- Transfer back to owner if he resubscribes
+  ;; B. Lending Transfers
+  ;;    1.LEND_WITHDRAW --
+  ;;
+  (defcap EXTEND (token:object{token-info} extender-account:string)
+     @managed
+    (bind (get-policy token)
+      { 'owner-guard:=owner-guard:guard
+        'provider-guard:=provider-guard:guard}
+      ;;Only owner can extend
+      ;;(enforce-guard provider-guard)
+      (let* 
+        ((extender-guard:guard (at 'guard (coin.details extender-account))))
+        (enforce (= extender-guard owner-guard))
+      )
+      (compose-capability UPDATE_EXPIRY)
+  ))
 
   (defcap UPDATE_EXPIRY()
   "private cap for update-expiry"
   true)
 
- ;; (defun update-expiration (token:object{token-info})
-   ;; (require-capability (UPDATE_EXPIRY))
-    ;;(bind (get-policy token) {"expiry-time":= old-expiry-time, "interval":= interval})
-    ;;(update policies (at 'id token) { "expiry-time" : old-expiry-time })
- ;; )
+  (defcap REGULAR ()
+  @managed
+  true
+  )
+
+  (defun update-expiration (token:object{token-info})
+    (require-capability (UPDATE_EXPIRY))
+    (bind (get-policy token) {"expiry-time":= old-expiry-time, "interval":= interval}
+      (update policies (at 'id token) { "expiry-time" : old-expiry-time })
+    )
+  )
 
   (defun enforce-transfer:bool
     ( token:object{token-info}
@@ -192,13 +183,24 @@
       ;;For the RETURN transfer part of the pact
     ;;  true
     ;;)
-    ;;(with-capability (EXTEND token guard (read-msg 'pact-id ))
+    (with-capability (REGULAR)
+        (bind (get-policy token)
+          { 'owner-guard:=owner-guard:guard}
+          ;;Only owner can extend
+          ;;(enforce-guard provider-guard)
+         (enforce-guard owner-guard)
+      )
+    )
+    ;(with-capability (EXTEND token (read-msg 'extender-account ))
         ;;Update expiration date has been confirmed that the sender is the protocol
-      ;;  (update-expiration token)
-    ;;)
-    ;;(with-capability ()
-      
-    ;;)
+       ;;See if there is enough funds in the buyer account
+      ;;Transfer funds to the provider account
+      ;(let* 
+       ; ((token-extend-price:decimal (read-decimal 'token-extend-price ))
+        ;(extender-account:string (read-msg 'extender-account )))
+      ;(coin.transfer extender-account sender token-extend-price))
+      ;(update-expiration token)
+    ;)
   )
 
   (defcap QUOTE:bool

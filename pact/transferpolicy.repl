@@ -1,3 +1,4 @@
+ ;;Dependencies Setup
 (begin-tx)
 (env-data
   { 'ns-admin-keyset: []
@@ -36,10 +37,7 @@
 (commit-tx)
 
 
-;SETUP funding account,
-;Fund Bob
-;Alice is the provider creating the token
-;Bob mints the token(Only he can mint it)
+;;Funder Account Setup
 (begin-tx)
 (env-sigs [])
 (load "test/ledger-test-coin.pact")
@@ -47,14 +45,14 @@
 (use kip.token-manifest)
 (env-data  { 'bob-guard: ["bob"]
 , 'tom-guard: ["tom"]
-, 'alice-guard: ["alice"]
+, 'netflix-guard: ["netflix"]
 , 'mint-guard: ["mint"]
 , 'burn-guard: ["burn"]
 , 'sale-guard: ["sale"]
 , 'transfer-guard: ["transfer"],
-"provider-guard": ["alice"],
+"provider-guard": ["netflix"],
 "token-mint-price": 5.0,
-"provider-account":"alice" ,
+"provider-account":"netflix" ,
 "owner-guard":["bob"],
 "renter-guard":[],
 "provider-royalty":0.0,
@@ -68,102 +66,108 @@
 "rent-start-time":"2016-07-22T11:26:35Z", 
 "rent-end-time":"2016-07-22T11:26:35Z", 
 "min-amount":0.0, 
-"max-supply":10000000000.0})
-(marmalade.ledger.create-token
-  TOKEN
-  12
-  (create-manifest (uri "text" "token") [])
-  free.transferable-subscribe-policy)
-(test-capability (coin.CREDIT FUNDER_ACCT))
+"max-supply":10000000000.0,
+"extender-account":"bob",
+"token-extend-price":1.0})
+    ;;Fund the Funder Account
+    (test-capability (coin.CREDIT FUNDER_ACCT))
     (expect "fund success" true
     (test-fund FUNDER_ACCT FUNDER_GUARD FUNDER_BALANCE))
+    
+    ;;Create and Fund Account with name 'bob'
     (coin.create-account "bob" (read-keyset "bob-guard"))
-    (coin.create-account "alice" (read-keyset "alice-guard"))
-
     (test-capability (ledger-test-coin.DELEGATE FUNDER_ACCT 0))
     (test-capability (ledger-test-coin.TRANSFER FUNDER_ACCT "bob" 10.0))
     (test-capability (coin.TRANSFER FUNDER_ACCT "bob" 10.0))
     (ledger-test-coin.transfer FUNDER_ACCT "bob" 10.0)
 
-(env-keys ["alice"])
-(use marmalade.ledger)
-(use kip.token-manifest)
+    ;;Create and Fund account with name 'netflix'
+    (coin.create-account "netflix" (read-keyset "netflix-guard"))
+    (test-capability (ledger-test-coin.DELEGATE FUNDER_ACCT 0))
+    (test-capability (ledger-test-coin.TRANSFER FUNDER_ACCT "netflix" 10.0))
+    (test-capability (coin.TRANSFER FUNDER_ACCT "netflix" 10.0))
+    (ledger-test-coin.transfer FUNDER_ACCT "netflix" 10.0)
+    
 
-(expect-failure
-  "alice creates a new token project-0 before initialization"
-  "Manifest is not valid"
-  (create-token
-    "project-0"
-    12
-    {"uri": (uri "text" "project-0-uri"),
-     "hash": "wrong-hash",
-     "data": []}
-    free.transferable-subscribe-policy)
-  )
+    (env-keys ["netflix"])
+    (use marmalade.ledger)
+    (use kip.token-manifest)
 
-(expect
-  "alice creates a new token project-0"
-  true
-  (create-token
-    "project-0"
-    12
-    (create-manifest (uri "text" "project-0-uri") [])
-    free.transferable-subscribe-policy)
-  )
+    ;;Testing Create token with help of token-manifest
+    ;Alice becomes the provider in this situation
+    (expect-failure
+    "netflix creates a new token bob-bronze-subscription before initialization"
+    "Manifest is not valid"
+    (create-token
+        "bob-bronze-subscription"
+        12
+        {"uri": (uri "text" "bob-bronze-subscription-uri"),
+        "hash": "wrong-hash",
+        "data": []}
+        free.transferable-subscribe-policy)
+    )
 
-  (env-keys ["bob"])
-  
-  (env-sigs [
-    { 'key: "bob"
-    , 'caps:
-      [
-       (MINT "project-0" "bob" 1.0),
-       (coin.TRANSFER "bob" "alice" 10.0)
-       (TRANSFER "project-0" "bob" "alice" 2.0),
-       (TRANSFER "project-0" "bob" "project-0:1" 1.0),
-       (TRANSFER "project-0:1" "bob" "alice"  0.000000002),
-       (MINT "project-0:1" "bob" 1.0)
-      ]
-    },
-    {
-      'key: "project-0:1",
-      'caps: [
-       (MINT "project-0:1" "bob" 1.0)
-      ]
-    },
-    {
-      'key: "alice",
-      'caps: [
-        (TRANSFER "project-0:1" "alice" "project-0:1:1" 1.0)
-        (MINT "project-0" "alice" 5.0)
-      ]
-    },
-    { 'key: "mint", 'caps: [] },
-    { 'key: "transfer", 'caps: [] }
+    (expect
+    "netflix creates a new token bob-bronze-subscription"
+    true
+    (create-token
+        "bob-bronze-subscription"
+        12
+        (create-manifest (uri "text" "bob-bronze-subscription-uri") [])
+        free.transferable-subscribe-policy)
+    )
+
+    ;; Test Minting with rightful owner
+    (env-keys ["bob"])
+    
+    (env-sigs [
+        { 'key: "bob"
+        ,'caps:
+            [
+            (MINT "bob-bronze-subscription" "bob" 1.0),
+            (coin.TRANSFER "bob" "netflix" 10.0)
+            ]
+        }
     ])
 
-  (expect
-    "bob mints a 1.0 of token"
-    true
-    (mint "project-0" "bob" (read-keyset 'bob-guard ) 1.0))
-  
+    (expect
+        "bob mints a 1.0 of token"
+        true
+        (mint "bob-bronze-subscription" "bob" (read-keyset 'bob-guard ) 1.0))
+    
+    ;;Test Minting with Unrightful owner
     (env-keys ["tom"])
   
     (env-sigs [
       { 'key: "tom"
       , 'caps:
         [
-         (MINT "project-0" "tom" 1.0),
-         (coin.TRANSFER "bob" "alice" 10.0)
-         (TRANSFER "project-0" "bob" "alice" 2.0),
-         (TRANSFER "project-0" "bob" "project-0:1" 1.0),
-         (TRANSFER "project-0:1" "bob" "alice"  0.000000002),
-         (MINT "project-0:1" "bob" 1.0)
+         (MINT "bob-bronze-subscription" "tom" 1.0),
+         (coin.TRANSFER "tom" "netflix" 10.0)
         ]
       }
      ])
     (expect-failure
-        "tom tries to mint 1.0 of token with bob as designate owner"
+        "tom tries to mint 1.0 of token with bob as designated owner"
         ": Failure: Tx Failed: Keyset failure (keys-all): [bob]"
-        (mint "project-0" "tom" (read-keyset 'tom-guard ) 1.0))
+        (mint "bob-bronze-subscription" "tom" (read-keyset 'tom-guard ) 1.0))
+
+    ;;Test Regular transfer for future extension
+    (env-keys ["bob"])
+
+    (env-sigs [
+        { 'key: "bob"
+        ,'caps:
+            [
+            (free.transferable-subscribe-policy.REGULAR)
+            (TRANSFER "bob-bronze-subscription" "bob" "netflix" 1.0),
+            ]
+        }
+    ])
+
+    (expect
+        "bob transfers 1.0 of token to netflix"
+        true
+        (transfer-create "bob-bronze-subscription" "bob" "netflix" (read-keyset 'netflix-guard ) 1.0))
+
 (commit-tx)
