@@ -30,7 +30,7 @@
     trial-period:time
     grace-period:time
     pausable:string
-    interval:time
+    interval:decimal
     expiry-time:time
     first-start-time:time
     rent-start-time:time
@@ -74,7 +74,7 @@
             (grace-period:time (time (read-string 'grace-period )))
             (pausable:string (read-msg 'pausable ))
             (expiry-time:time (time (read-string 'expiry-time )))
-            (interval:time (time (read-string 'interval )))
+            (interval:decimal (read-decimal 'interval ))
             (first-start-time:time (time (read-string 'first-start-time )))
             (rent-start-time:time (time "0000-00-00T00:00:00Z"))
             (rent-end-time:time (time "0000-00-00T00:00:00Z"))
@@ -142,36 +142,62 @@
   ;; B. Lending Transfers
   ;;    1.LEND_WITHDRAW --
   ;;
-  (defcap EXTEND (token:object{token-info} extender-account:string)
-     @managed
-    (bind (get-policy token)
-      { 'owner-guard:=owner-guard:guard
-        'provider-guard:=provider-guard:guard}
-      ;;Only owner can extend
-      ;;(enforce-guard provider-guard)
-      (let* 
-        ((extender-guard:guard (at 'guard (coin.details extender-account))))
-        (enforce (= extender-guard owner-guard))
-      )
-      (compose-capability UPDATE_EXPIRY)
-  ))
+  (defcap EXTEND (token:object{token-info} extender-account:string token-extend-price:decimal)
+  @managed
+   (compose-capability (UPDATE_EXPIRY))
+  )
+
+  (defcap WITHDRAW_TOKEN (token:object{token-info} owner:string provider:string withdraw-time:time)
+      @event
+      "WITHDRAW"
+  )
+
+  (defcap EXTENDED(token:object{token-info} owner:string provider:string old-expiry-time:time new-expiry-time:time)
+      @event
+      "EXTENDED"
+  )
 
   (defcap UPDATE_EXPIRY()
   "private cap for update-expiry"
   true)
 
-  (defcap REGULAR ()
-  @managed
-  true
-  )
-
-  (defun update-expiration (token:object{token-info})
-    (require-capability (UPDATE_EXPIRY))
+  (defun get-new-expiry-time (token:object{token-info})
     (bind (get-policy token) {"expiry-time":= old-expiry-time, "interval":= interval}
-      (update policies (at 'id token) { "expiry-time" : old-expiry-time })
+      (let* ((new-expiry-time:time (add-time old-expiry-time interval)))
+        new-expiry-time
+      )
     )
   )
+  
+  (defun update-expiration (token:object{token-info})
+    (require-capability (UPDATE_EXPIRY))
+    (let* ((new-expiry-time:time (get-new-expiry-time token)))
+      (update policies (at 'id token) { "expiry-time" : new-expiry-time })
+    )
+  )
+  
+  (defun withdraw (token:object{token-info} provider-guard:guard owner-guard:guard receiver-guard:guard expiry-time:time provider:string owner:string)
+      ;;Only could withdraw to provider
+      (enforce-guard owner-guard)
+      (enforce (= receiver-guard provider-guard) "Only could withdraw to provider")
+      ;;Check for past rent expiry
+      (bind (chain-data){'block-time := current-time}
+        (enforce (> current-time expiry-time) "Subscription not yet expired")
+        (emit-event (WITHDRAW_TOKEN token owner provider current-time))
+      )
+  )
 
+  (defun extend (token:object{token-info} owner-guard:guard provider-guard:guard receiver-guard:guard extender-account:string provider-account:string 
+    token-extend-price:decimal expiry-time:time)
+      (enforce-guard provider-guard)
+      (enforce (= receiver-guard owner-guard) "Only owner could be transferred to for extend")
+      (with-capability (EXTEND token extender-account token-extend-price)
+        (coin.transfer extender-account provider-account token-extend-price)
+        (update-expiration token)
+        (emit-event (EXTENDED token extender-account provider-account expiry-time (get-new-expiry-time token)))
+      )
+  )
+ 
   (defun enforce-transfer:bool
     ( token:object{token-info}
       sender:string
@@ -179,28 +205,27 @@
       receiver:string
       amount:decimal )
     (enforce-ledger)
-   ;; (with-capability (RETURN token guard)
-      ;;For the RETURN transfer part of the pact
-    ;;  true
-    ;;)
-    (with-capability (REGULAR)
-        (bind (get-policy token)
-          { 'owner-guard:=owner-guard:guard}
-          ;;Only owner can extend
-          ;;(enforce-guard provider-guard)
-         (enforce-guard owner-guard)
+    (let* 
+      ((sender-guard:guard (at 'guard (coin.details sender)))
+       (receiver-guard:guard (at 'guard (coin.details receiver)))      
+      )
+      (bind (get-policy token) {"owner-guard":=owner-guard, "provider-guard":=provider-guard, "expiry-time":=expiry-time}
+        (if (= sender-guard owner-guard)
+          ;;Withdraw operation
+          (withdraw token provider-guard owner-guard receiver-guard expiry-time receiver sender)
+
+          (if (= sender-guard provider-guard)
+            ;;Extend Operation
+            ;;receiver here is the extender
+            ;;sender here is the provider
+            (extend token owner-guard provider-guard receiver-guard receiver sender (read-decimal 'token-extend-price ) expiry-time)
+          
+            ;;If not a owner or provider that calls transfer it isn't possible
+            false
+          )
+        )
       )
     )
-    ;(with-capability (EXTEND token (read-msg 'extender-account ))
-        ;;Update expiration date has been confirmed that the sender is the protocol
-       ;;See if there is enough funds in the buyer account
-      ;;Transfer funds to the provider account
-      ;(let* 
-       ; ((token-extend-price:decimal (read-decimal 'token-extend-price ))
-        ;(extender-account:string (read-msg 'extender-account )))
-      ;(coin.transfer extender-account sender token-extend-price))
-      ;(update-expiration token)
-    ;)
   )
 
   (defcap QUOTE:bool

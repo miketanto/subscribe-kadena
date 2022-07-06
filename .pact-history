@@ -1,2 +1,3 @@
 (load "subscribeVault.repl")
+(load "subscribeVault.repl")
 (load subscribeVault.repl)
