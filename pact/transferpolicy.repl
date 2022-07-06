@@ -60,8 +60,8 @@
 "trial-period":"2016-07-22T11:26:35Z",
 "grace-period":"2016-07-22T11:26:35Z",
 "pausable":"false",
-"expiry-time":"2016-07-22T11:26:35Z",
-"interval":"2016-07-22T11:26:35Z",
+"expiry-time":"0000-01-01T00:00:00Z",
+"interval": 2592000,
 "first-start-time":"2016-07-22T11:26:35Z", 
 "rent-start-time":"2016-07-22T11:26:35Z", 
 "rent-end-time":"2016-07-22T11:26:35Z", 
@@ -154,14 +154,13 @@
 
     ;;Test Regular transfer for future extension
     ;;Extender = netflix-->need to pay 
-    (env-keys ["bob"])
+    (env-keys ["netflix"])
 
     (env-sigs [
         { 'key: "bob"
         ,'caps:
             [
-            (TRANSFER "bob-bronze-subscription" "bob" "netflix" 1.0),
-            (free.transferable-subscribe-policy.EXTEND  (at 'token (get-policy-info 'bob-bronze-subscription )) "netflix")
+            (TRANSFER "bob-bronze-subscription" "bob" "netflix" 1.0)
             ]
         },
         { 'key: "netflix"
@@ -181,25 +180,52 @@
         15.0
         (coin.get-balance "netflix")
     )
-
     (expect
-        "bob transfers 1.0 of token to netflix"
+        "bob now has the bronze subscription"
+        1.0
+        (get-balance "bob-bronze-subscription" "bob")    
+    )
+    (expect
+        "netflix withdraws bobs subscription"
         true
-        (transfer-create "bob-bronze-subscription" "bob" "netflix" (read-keyset 'netflix-guard ) 1.0))
+        (transfer-create "bob-bronze-subscription" "bob" "netflix" (read-keyset 'netflix-guard ) 1.0)
+    )
 
-    (expect
-        "bob supposedly has 6 kda"
-        6.0
-        (coin.get-balance "bob")
-    )
-    (expect
-        "netflix supposedly has 14 kda"
-        14.0
-        (coin.get-balance "netflix")
-    )
     (expect
         "netflix now has the bronze subscription"
         1.0
         (get-balance "bob-bronze-subscription" "netflix")    
     )
+
+    (env-keys ["bob"])
+
+    (env-sigs [
+        { 'key: "bob"
+        ,'caps:
+            [
+                (coin.TRANSFER "bob" "netflix" 1.0),
+                (free.transferable-subscribe-policy.EXTEND  (at 'token (get-policy-info 'bob-bronze-subscription )) "bob" 1.0)
+            ]
+        },
+        { 'key: "netflix"
+        ,'caps:
+            [
+            (TRANSFER "bob-bronze-subscription" "netflix" "bob" 1.0)
+            ]
+        }
+    ])
+
+    (expect
+        "bob extends subscription"
+        true
+        (transfer-create "bob-bronze-subscription" "netflix" "bob" (read-keyset 'bob-guard ) 1.0)
+    )
+
+    (map (remove 'module-hash ) (env-events true))
+
+    ;(expect
+      ;  "expiry-time updated properly"
+       ; {"name": "free.transferable-subscribe-policy.PROVIDER_WD","params": ["new-expiry" "0000-01-31T00:00:00Z"]} 
+        ;(at 18 (map (remove 'module-hash ) (env-events true)))
+    ;)
 (commit-tx)
