@@ -1,21 +1,17 @@
-import React from "react";
-import { Link } from "react-router-dom";
-import { useState, useEffect } from "react";
-import "./Navbar.css";
+import React, { useState, useEffect } from "react";
 import { Button } from "./Button";
+import { Link } from "react-router-dom";
+import "./Navbar.css";
 
 function Navbar() {
-  // create state variables
   const [click, setClick] = useState(false);
   const [button, setButton] = useState(true);
 
-  //for clicks
   const handleClick = () => setClick(!click);
-  //close the menu
   const closeMobileMenu = () => setClick(false);
 
   const showButton = () => {
-    if (window.innerwidth <= 960) {
+    if (window.innerWidth <= 960) {
       setButton(false);
     } else {
       setButton(true);
@@ -25,7 +21,7 @@ function Navbar() {
   useEffect(() => {
     showButton();
   }, []);
-  // show button when window is resized
+
   window.addEventListener("resize", showButton);
 
   return (
@@ -33,12 +29,13 @@ function Navbar() {
       <nav className="navbar">
         <div className="navbar-container">
           <Link to="/" className="navbar-logo" onClick={closeMobileMenu}>
-            Subscribe Kadena <i class="fa-solid fa-bomb"></i>
+            Subscribe Kadena
+            <i class="fab fa-typo3" />
           </Link>
           <div className="menu-icon" onClick={handleClick}>
             <i className={click ? "fas fa-times" : "fas fa-bars"} />
           </div>
-          <ul className={click ? "nav-menu-active" : "nav-menu"}>
+          <ul className={click ? "nav-menu active" : "nav-menu"}>
             <li className="nav-item">
               <Link to="/" className="nav-links" onClick={closeMobileMenu}>
                 Home
@@ -46,55 +43,34 @@ function Navbar() {
             </li>
             <li className="nav-item">
               <Link
-                to="/services"
+                to="/connect-wallet"
                 className="nav-links"
                 onClick={closeMobileMenu}
               >
-                Services
+                Connect Wallet
               </Link>
             </li>
             <li className="nav-item">
               <Link
-                to="/products"
+                to="/create-tokens"
                 className="nav-links"
                 onClick={closeMobileMenu}
               >
-                Products
+                Create Tokens
               </Link>
             </li>
+
             <li>
               <Link
-                to="/create"
+                to="/sign-up"
                 className="nav-links-mobile"
                 onClick={closeMobileMenu}
               >
-                Create
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/subscribe"
-                className="nav-links-mobile"
-                onClick={closeMobileMenu}
-              >
-                Subscribe
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/extend"
-                className="nav-links-mobile"
-                onClick={closeMobileMenu}
-              >
-                Extend
+                Sign Up
               </Link>
             </li>
           </ul>
-          {button && <Button buttonStyle="bin--outline">Create</Button>}
-
-          {button && <Button buttonStyle="bin--outline">Subscribe</Button>}
-
-          {button && <Button buttonStyle="bin--outline">Extend</Button>}
+          {button && <Button buttonStyle="btn--outline">SIGN UP</Button>}
         </div>
       </nav>
     </>
