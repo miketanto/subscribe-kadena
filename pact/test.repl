@@ -593,4 +593,31 @@
 (commit-tx)
 
 (begin-tx "withdraw-rental")
+(use marmalade.ledger)
+(env-data {
+'bob: ["bob-guard"]
+, 'alice: ["alice-guard"]
+, 'netflix: ["netflix-guard"]})
+
+(env-keys ["alice-guard"])
+
+(env-sigs [
+    { 'key: "alice-guard"
+    ,'caps:
+        [
+        (TRANSFER "bob-netflix-subscription" "alice" "bob" 1.0)
+        ]
+    }
+])
+
+(expect
+    "bob withdraws alice subscription"
+    true
+    (transfer-create "bob-netflix-subscription" "alice" "bob" (read-keyset 'bob ) 1.0)
+)
+
+(expect
+    "bob now has the netflix subscription"
+    1.0
+    (get-balance "bob-netflix-subscription" "bob"))
 (commit-tx)

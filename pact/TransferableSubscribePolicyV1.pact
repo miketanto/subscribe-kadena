@@ -154,7 +154,13 @@
 
   (defcap WITHDRAW_TOKEN (token:object{token-info} owner:string provider:string withdraw-time:time)
       @event
-      "WITHDRAW"
+      "WITHDRAW_TOKEN"
+  )
+
+  
+  (defcap WITHDRAW_RENT (token:object{token-info} owner:string renter:string withdraw-time:time)
+      @event
+      "WITHDRAW_RENT"
   )
 
   (defcap EXTENDED(token:object{token-info} owner:string provider:string old-expiry-time:time new-expiry-time:time)
@@ -192,6 +198,17 @@
       )
   )
 
+  (defun withdraw-rental (token:object{token-info} owner-guard:guard renter-guard:guard receiver-guard:guard owner:string renter:string rent-end-time:time)
+      ;;Only could withdraw to provider
+      (enforce-guard renter-guard)
+      (enforce (= receiver-guard owner-guard) "Only could withdraw to owner")
+      ;;Check for past rent expiry
+      (bind (chain-data){'block-time := current-time}
+        (enforce (> current-time rent-end-time) "Subscription Rental not yet expired")
+        (emit-event (WITHDRAW_RENT token renter owner current-time))
+      )
+  )
+
   (defun extend (token:object{token-info} owner-guard:guard provider-guard:guard receiver-guard:guard extender-account:string provider-account:string 
     token-extend-price:decimal expiry-time:time)
       (enforce-guard provider-guard)
@@ -214,7 +231,7 @@
       ((sender-guard:guard (at 'guard (coin.details sender)))
        (receiver-guard:guard (at 'guard (coin.details receiver)))      
       )
-      (bind (get-policy token) {"owner-guard":=owner-guard, "provider-guard":=provider-guard, "expiry-time":=expiry-time}
+      (bind (get-policy token) {"owner-guard":=owner-guard, "provider-guard":=provider-guard, "renter-guard":=renter-guard, "expiry-time":=expiry-time, "rent-end-time":=rent-end-time}
         (if (= sender-guard owner-guard)
           ;;Withdraw operation
           (withdraw token provider-guard owner-guard receiver-guard expiry-time receiver sender)
@@ -226,7 +243,10 @@
             (extend token owner-guard provider-guard receiver-guard receiver sender (read-decimal 'token-extend-price ) expiry-time)
           
             ;;If not a owner or provider that calls transfer it isn't possible
-            false
+            (if (= sender-guard renter-guard)
+              (withdraw-rental token owner-guard renter-guard receiver-guard receiver sender rent-end-time)
+              false
+            )
           )
         )
       )
@@ -305,6 +325,7 @@
   (defcap RENT_START:bool
     ( 
       token:object{token-info}
+      renter-guard:guard
       rent-start-time:time
       rent-end-time:time
     )
@@ -351,9 +372,9 @@
         ;;Update rent-start and rent-end
         (bind (chain-data){'block-time := current-time}
           (let*  ((rent-end:time (add-time current-time rent-interval)))
-           (update policies (at 'id token) { "rent-start-time" : current-time, "rent-end-time" : rent-end })
+           (update policies (at 'id token) { "rent-start-time" : current-time, "rent-end-time" : rent-end, "renter-guard":buyer-guard })
            ;;Fire RENT START EVENT
-           (emit-event (RENT_START token current-time rent-end))
+           (emit-event (RENT_START token buyer-guard current-time rent-end))
           ) 
         )
       )
