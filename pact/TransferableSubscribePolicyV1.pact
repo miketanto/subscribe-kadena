@@ -22,13 +22,14 @@
   ;;Data that will vary from policy to policy
   ;;Owner Royalty --- royalty set on rent to other people
   (defschema policy-schema
+    provider-account:string
     provider-guard:guard
     owner-guard:guard
     renter-guard:guard
     provider-royalty:decimal
     owner-royalty:decimal
-    trial-period:time
-    grace-period:time
+    trial-period:decimal
+    grace-period:decimal
     pausable:string
     interval:decimal
     expiry-time:time
@@ -54,9 +55,9 @@
     (enforce-guard (keyset-ref-guard "protocol-keyset"))
    )
   
-   (defun enforce-extension-pact:bool (extension-id:string)
+   (defun enforce-rent-pact:bool (rent-id:string)
     "Enforces that SALE is id for currently executing pact"
-    (enforce (= extension-id (pact-id)) "Invalid pact/extension id")
+    (enforce (= rent-id (pact-id)) "Invalid pact/rent id")
    )
 
    (defun enforce-init:bool
@@ -66,12 +67,13 @@
     ;;(enforce-guard (read-keyset 'provider-guard ))
 
     (let* ( (provider-guard:guard (read-keyset 'provider-guard ))
+            (provider-account:string (read-msg 'provider-account ))
             (owner-guard:guard (read-keyset 'owner-guard ))
             (renter-guard:guard (read-keyset 'renter-guard ))
             (provider-royalty:decimal (read-decimal 'provider-royalty ))
             (owner-royalty:decimal (read-decimal 'owner-royalty ))
-            (trial-period:time (time (read-string 'trial-period )))
-            (grace-period:time (time (read-string 'grace-period )))
+            (trial-period:decimal (read-decimal 'trial-period ))
+            (grace-period:decimal  (read-decimal 'grace-period ))
             (pausable:string (read-msg 'pausable ))
             (expiry-time:time (time (read-string 'expiry-time )))
             (interval:decimal (read-decimal 'interval ))
@@ -83,9 +85,9 @@
             )
     (enforce (>= min-amount 0.0) "Invalid min-amount")
     (enforce (>= max-supply 0.0) "Invalid max-supply")
-
     (insert policies (at 'id token) 
     {"provider-guard":provider-guard, 
+    "provider-account":provider-account,
     "owner-guard":owner-guard,
     "renter-guard":renter-guard,
     "provider-royalty":provider-royalty,
@@ -133,6 +135,9 @@
     
     (enforce (>= amount min-amount) "mint amount < min-amount")
     (enforce (<= (+ amount (at 'supply token)) max-supply) "Exceeds max supply")
+    (bind (chain-data){'block-time := current-time}
+      (update policies (at 'id token) { "first-start-time" : current-time })
+    )
 ))
 
   ;;Types of Transfers
@@ -244,12 +249,16 @@
   (defconst QUOTE-MSG-KEY "quote"
     @doc "Payload field for quote spec")
 
+    ;;Recipient is seller (recipient of fungible token) 
   (defschema quote-spec
     @doc "Quote data to include in payload"
-    fungible:module{fungible-v2}
     price:decimal
     recipient:string
     recipient-guard:guard
+    designated-buyer:string
+    designated-buyer-guard:guard
+    renter-subsidy:decimal
+    rent-interval:decimal
   )
 
   (defschema quote-schema
@@ -258,6 +267,9 @@
 
   (deftable quotes:{quote-schema})
 
+  (defun enforce-designated-buyer (buyer:string guard:guard)
+    (and (> (length buyer) 0) (= guard (at 'guard (coin.details buyer))))
+  )
   (defun enforce-offer:bool
     ( token:object{token-info}
       seller:string
@@ -266,22 +278,39 @@
     )
     @doc "Capture quote spec for SALE of TOKEN from message"
     (enforce-ledger)
-    (enforce-extension-pact sale-id)
+    (enforce-rent-pact sale-id)
     (let* ( (spec:object{quote-spec} (read-msg QUOTE-MSG-KEY))
-            (fungible:module{fungible-v2} (at 'fungible spec) )
             (price:decimal (at 'price spec))
             (recipient:string (at 'recipient spec))
             (recipient-guard:guard (at 'recipient-guard spec))
-            (recipient-details:object (fungible::details recipient))
-            (sale-price:decimal (* amount price)) )
-      (fungible::enforce-unit sale-price)
-      (enforce (< 0.0 price) "Offer price must be positive")
+            (recipient-details:object (coin.details recipient))
+            (sale-price:decimal (* amount price)) 
+            (designated-buyer:string (at 'designated-buyer spec))
+            (designated-buyer-guard:guard (at 'designated-buyer-guard spec))
+            )
+      (coin.enforce-unit sale-price)
+      ;;Airdrop if there is designated buyer &&designated-buyer exists&&designated-buyer-guard == designated-buyer's guard
+      (if (enforce-designated-buyer designated-buyer designated-buyer-guard)
+        (enforce (<= 0.0 price) "Offer price must be positive or free")
+        (enforce (< 0.0 price) "Offer price must be positive")
+      )
       (enforce (=
         (at 'guard recipient-details) recipient-guard)
         "Recipient guard does not match")
       (insert quotes sale-id { 'id: (at 'id token), 'spec: spec })
       (emit-event (QUOTE sale-id (at 'id token) amount price sale-price spec)))
       true
+  )
+
+  (defcap RENT_START:bool
+    ( 
+      token:object{token-info}
+      rent-start-time:time
+      rent-end-time:time
+    )
+    @doc "For event emission purposes"
+    @event
+    true
   )
 
   (defun enforce-buy:bool
@@ -292,17 +321,43 @@
       amount:decimal
       sale-id:string )
     (enforce-ledger)
-    (enforce-extension-pact sale-id)
+    (enforce-rent-pact sale-id)
     (with-read quotes sale-id { 'id:= qtoken, 'spec:= spec:object{quote-spec} }
       (enforce (= qtoken (at 'id token)) "incorrect sale token")
       (bind spec
-        { 'fungible := fungible:module{fungible-v2}
-        , 'price := price:decimal
+        {'price := price:decimal
         , 'recipient := recipient:string
+        , 'designated-buyer-guard := designated-buyer-guard:guard
+        , 'designated-buyer := designated-buyer:string
+        , 'renter-subsidy := renter-subsidy:decimal
+        , 'rent-interval := rent-interval:decimal
         }
-        (fungible::transfer buyer recipient (* amount price))
+        (if (enforce-designated-buyer designated-buyer designated-buyer-guard)
+          (enforce-guard designated-buyer-guard)
+          true
+        )
+        ;;Calculate how much they need to pay to netflix each
+        (let* (
+          (provider-royalty:decimal (at 'provider-royalty (get-policy token)))
+          (provider-account:string (at 'provider-account (get-policy token)))
+          (seller-to-provider:decimal (* provider-royalty renter-subsidy))
+          (buyer-to-provider:decimal (-  provider-royalty seller-to-provider))
+        )
+        (coin.transfer buyer provider-account buyer-to-provider)
+        (if (< 0.0 seller-to-provider) (coin.transfer seller provider-account seller-to-provider) true)
+        (if (< 0.0 (* amount price)) (coin.transfer buyer recipient (* amount price)) true)
+        
+
+        ;;Update rent-start and rent-end
+        (bind (chain-data){'block-time := current-time}
+          (let*  ((rent-end:time (add-time current-time rent-interval)))
+           (update policies (at 'id token) { "rent-start-time" : current-time, "rent-end-time" : rent-end })
+           ;;Fire RENT START EVENT
+           (emit-event (RENT_START token current-time rent-end))
+          ) 
+        )
       )
-    )
+    ))
     true
   )
 

@@ -1,0 +1,596 @@
+ ;;Dependencies Setup
+ (begin-tx)
+ (env-data
+   { 'ns-admin-keyset: []
+   , 'ns-genesis-keyset:[]
+   , 'ns-operate-keyset:[] })
+ (load "root/fungible-v2.pact")
+ (load "root/gas-payer-v1.pact")
+ (load "root/coin.pact")
+ (load "root/ns.pact")
+ 
+ (define-namespace 'kip (sig-keyset) (sig-keyset))
+ 
+ (load "kip/account-protocols-v1.pact")
+ (load "kip/manifest.pact")
+ (load "kip/token-policy-v1.pact")
+ (load "kip/poly-fungible-v2.pact")
+ 
+ (define-namespace 'util (sig-keyset) (sig-keyset))
+ (load "util/fungible-util.pact")
+ (commit-tx)
+ 
+
+ (begin-tx)
+ (env-data
+  { 'marmalade-admin: ["marmalade-admin"]
+  , 'marmalade-ns-user: ["marmalade-admin"]
+  , 'marmalade-ns-admin: ["marmalade-admin"]
+  , 'ns: "marmalade"
+  , 'upgrade: false })
+  (env-sigs [
+    { 'key: 'marmalade-admin
+     ,'caps: []
+     }])
+ (load "ns-marmalade.pact")
+ (load "ledger.pact")
+ (load "TransferableSubscribePolicyV1.pact")
+ (load "test/transferPolicy.repl")
+ (commit-tx)
+
+ (free.transfer-policy-test.suite "")
+
+ (begin-tx)
+ (use kip.token-manifest)
+ (env-data {
+    "provider-account":"netflix",
+     "provider-guard": ["netflix-guard"],
+     "owner-guard":["bob-guard"],
+     "token-mint-price": 1.0, 
+     "renter-guard":[],
+     "provider-royalty":1.0,
+     "owner-royalty":0.0,
+     "trial-period":2592000,
+     "grace-period":2592000,
+     "pausable":"false",
+     "expiry-time":"0000-01-01T00:00:00Z",
+     "interval": 2592000,
+     "first-start-time":"2016-07-22T11:26:35Z", 
+     "min-amount":0.0, 
+     "max-supply":10000000000.0})
+     
+ (expect-failure
+     "Uncreated token does not exist in tokens table"
+ (marmalade.ledger.get-policy-info "bob-netflix-subscription"))
+
+ (expect-failure
+     "Uncreated token does not exist in ledger table"
+     (marmalade.ledger.details "bob-netflix-subscription" "bob"))
+
+   (env-keys ["netflix-guard"])
+   
+   ;;Testing Create token with help of token-manifest
+   ;Alice becomes the provider in this situation
+   (expect-failure
+   "Token is being created with invalid manifest"
+   "Manifest is not valid"
+   (marmalade.ledger.create-token
+       "bob-netflix-subscription"
+       12
+       {"uri": (uri "text" "bob-bronze-subscription-uri"),
+       "hash": "wrong-hash",
+       "data": []}
+       free.transferable-subscribe-policy)
+   )
+
+   (expect
+   "Token is created with valid manifest. Provider:Netflix, Owner:Bob"
+   true
+   (marmalade.ledger.create-token
+       "bob-netflix-subscription"
+       12
+       (create-manifest (uri "text" "bob-netflix-subscription-uri") [])
+       free.transferable-subscribe-policy)
+   )
+
+   (expect
+     "Token successfully created with correct policy info"
+     { 'policy: free.transferable-subscribe-policy
+     , 'token:
+       { 'id: "bob-netflix-subscription"
+       , 'supply: 0.0
+       , 'precision: 12
+       , 'manifest: (create-manifest (uri "text" "bob-netflix-subscription-uri") [])
+     } }
+     (marmalade.ledger.get-policy-info "bob-netflix-subscription"))
+
+ (commit-tx)
+
+ (begin-tx "fund-accounts")
+ (env-data
+    { 'bob: ["bob-guard"]
+    , 'alice: ["alice-guard"]
+    , 'netflix: ["netflix-guard"]
+  })
+
+ (free.transfer-policy-test.fund-funder)
+
+ (free.transfer-policy-test.fund-create "bob" (read-keyset "bob") 20.0)
+ (free.transfer-policy-test.fund-create "netflix" (read-keyset "netflix") 20.0)
+ (free.transfer-policy-test.fund-create "alice" (read-keyset "alice") 20.0)
+
+ (expect "bob initially has 20 kda" 20.0
+  (coin.get-balance "bob"))
+ (expect "netflix initially has 20 kda" 20.0
+    (coin.get-balance "netflix"))
+(expect "alice initially has 20 kda" 20.0
+    (coin.get-balance "alice"))
+ (commit-tx)
+
+
+(begin-tx "mint-subscription")
+(use marmalade.ledger)
+(env-data
+    { 'bob: ["bob-guard"]
+    , 'alice: ["alice-guard"]
+    , 'netflix: ["netflix-guard"]
+    ,"token-mint-price": 1.0
+    ,"provider-account":"netflix"
+})
+
+(env-keys ["alice-guard"])
+
+(env-sigs [
+    { 'key: "alice-guard"
+    , 'caps:
+    [
+    (marmalade.ledger.MINT "bob-netflix-subscription" "alice" 1.0),
+    (coin.TRANSFER "alice" "netflix" 1.0)
+    ]
+    }
+])
+(expect-failure
+    "Unrightful owner tries minting"
+    ": Failure: Tx Failed: Keyset failure (keys-all): [bob-guar...]"
+    (mint "bob-netflix-subscription" "alice" (read-keyset 'alice ) 1.0)
+)
+
+(env-keys ["bob-guard"])
+(env-sigs [
+    { 'key: "bob-guard"
+    ,'caps:
+        [
+        (marmalade.ledger.MINT "bob-netflix-subscription" "bob" 1.0),
+        (coin.TRANSFER "bob" "netflix" 1.0)
+        ]
+    }
+])
+
+(expect
+    "Token minted by rightful owner"
+    true
+    (mint "bob-netflix-subscription" "bob" (read-keyset 'bob ) 1.0))
+
+(expect "bob now has 19 KDA, since mint is 1 KDA" 19.0
+    (coin.get-balance "bob"))
+(expect "netflix now has 21 KDA, since mint paid 1 KDA" 21.0
+    (coin.get-balance "netflix"))
+(expect
+    "bob now has the netflix subscription"
+    1.0
+    (get-balance "bob-netflix-subscription" "bob")    
+)
+
+(expect-failure
+    "Only one token could be minted"
+    (mint "bob-netflix-subscription" "bob" (read-keyset 'bob ) 1.0))
+
+(commit-tx)
+
+
+(begin-tx "false-withdraw-test")
+(use marmalade.ledger)
+(env-data {
+'bob: ["bob-guard"]
+, 'alice: ["alice-guard"]
+, 'netflix: ["netflix-guard"]
+, "extender-account":"netflix"
+,"token-extend-price":1.0})
+
+(env-keys ["netflix"])
+
+(env-sigs [
+    { 'key: "bob-guard"
+    ,'caps:
+        [
+        (TRANSFER "bob-netflix-subscription" "bob" "alice" 1.0)
+        ]
+    },
+    { 'key: "netflix-guard"
+    ,'caps:
+        [
+        (coin.TRANSFER "alice" "bob" 1.0)
+        ]
+    }
+])
+
+(expect-failure
+    "Alice tries to withdraw bobs subscription"
+    ": Failure: Tx Failed: Only could withdraw to provider"
+    (transfer-create "bob-netflix-subscription" "bob" "alice" (read-keyset 'alice ) 1.0)
+)
+
+(expect
+    "bob still has the netflix subscription"
+    1.0
+    (get-balance "bob-netflix-subscription" "bob")    
+)
+
+(commit-tx)
+
+(begin-tx "withdraw-test")
+(use marmalade.ledger)
+(env-data {
+'bob: ["bob-guard"]
+, 'alice: ["alice-guard"]
+, 'netflix: ["netflix-guard"]
+, "extender-account":"netflix"
+,"token-extend-price":1.0})
+
+(env-keys ["netflix"])
+
+(env-sigs [
+    { 'key: "bob-guard"
+    ,'caps:
+        [
+        (TRANSFER "bob-netflix-subscription" "bob" "netflix" 1.0)
+        ]
+    },
+    { 'key: "netflix-guard"
+    ,'caps:
+        [
+        (coin.TRANSFER "netflix" "bob" 1.0)
+        ]
+    }
+])
+
+(expect
+    "netflix withdraws bobs subscription"
+    true
+    (transfer-create "bob-netflix-subscription" "bob" "netflix" (read-keyset 'netflix ) 1.0)
+)
+
+(expect
+    "netflix now has the netflix subscription"
+    1.0
+    (get-balance "bob-netflix-subscription" "netflix")    
+)
+
+(commit-tx)
+
+(begin-tx "early-withdraw-test")
+
+(rollback-tx)
+
+(begin-tx "false-extension-test")
+;;Wrong user extending
+
+;;User doesn't have enough KDA to extend
+
+(rollback-tx)
+
+(begin-tx "proper-extension-test")
+(use marmalade.ledger)
+(env-data {
+    'bob: ["bob-guard"]
+    , 'alice: ["alice-guard"]
+    , 'netflix: ["netflix-guard"]
+    , "extender-account":"netflix"
+    ,"token-extend-price":1.0
+})
+
+(env-keys ["bob-guard"])
+
+(env-sigs [
+    { 'key: "bob-guard"
+    ,'caps:
+        [
+            (coin.TRANSFER "bob" "netflix" 1.0),
+            (free.transferable-subscribe-policy.EXTEND  (at 'token (get-policy-info 'bob-netflix-subscription )) "bob" 1.0)
+        ]
+    },
+    { 'key: "netflix-guard"
+    ,'caps:
+        [
+        (TRANSFER "bob-netflix-subscription" "netflix" "bob" 1.0)
+        ]
+    }
+])
+
+(expect
+    "bob extends subscription"
+    true
+    (transfer-create "bob-netflix-subscription" "netflix" "bob" (read-keyset 'bob ) 1.0)
+)
+(expect "bob now has 18 KDA, since extension is 1 KDA" 18.0
+    (coin.get-balance "bob"))
+(expect "netflix now has 22 KDA, since mint paid 1 KDA" 22.0
+    (coin.get-balance "netflix"))
+(commit-tx)
+
+
+
+
+(begin-tx "open-marketplace-rent-unsubsidized")
+
+(env-data {
+    "buyer-guard":["buyer-guard"],
+    "quote":{
+        "price": 1.0,
+        "recipient": "bob",
+        "recipient-guard": {"keys": ["bob-guard"], "pred":"keys-all"},
+        "designated-buyer":"",
+        "designated-buyer-guard":{"keys": ["buyer"], "pred": "keys-all"},
+        "renter-subsidy":0.0,
+        "rent-interval":2592000.0
+      };
+})
+(env-hash (hash "sale-tx1"))
+
+(use marmalade.ledger)
+
+(env-chain-data {"block-height": 100})
+
+(env-keys ["bob-guard"])
+
+(env-sigs
+  [{'key:'bob-guard
+   ,'caps:
+    [(marmalade.ledger.OFFER "bob-netflix-subscription" "bob" 1.0 110)
+     (marmalade.ledger.OFFER "bob-netflix-subscription" "bob" 1.0 10)
+     ]}
+  ])
+
+(expect-failure "Offer fails due to small timeout"
+  "invalid timeout"
+  (sale 'bob-netflix-subscription 'bob 1.0 10))
+
+(expect "Offer succeeds"
+  true
+  (sale 'bob-netflix-subscription 'bob 1.0 110))
+
+ (expect "Seller bob-netflix-subscription account debited sale amount"
+  0.0
+  (marmalade.ledger.get-balance 'bob-netflix-subscription 'bob ))
+
+(expect "bob-netflix-subscription escrow account credited sale amount"
+  1.0
+  (marmalade.ledger.get-balance 'bob-netflix-subscription (sale-account)))
+;;Event tests
+
+(env-data {
+    "buyer":"alice",
+    "buyer-guard":{"keys":["alice-guard"],"pred":"keys-all"}
+}   
+)
+
+(env-sigs
+    [{'key:'alice-guard,'caps: [
+       (marmalade.ledger.BUY "bob-netflix-subscription" "bob" "alice" 1.0 110 (pact-id)),
+       (coin.TRANSFER "alice" "netflix" 1.0),
+       (coin.TRANSFER "alice" "bob" 1.0)
+     ]}])
+  
+  (expect "Buy succeeds"
+    true
+    (continue-pact 1))
+  
+  (expect "bob-netflix-subscription escrow account debited sale amount"
+    0.0
+    (marmalade.ledger.get-balance 'bob-netflix-subscription (sale-account)))
+  
+  (expect "Buyer  account credited sale amount"
+    1.0
+    (marmalade.ledger.get-balance 'bob-netflix-subscription 'alice ))
+  
+  (expect "bob now has 19 KDA, since renting paid 1 KDA" 19.0
+    (coin.get-balance "bob"))
+
+  (expect "netflix now has 23 KDA, since royalty paid 1 KDA" 23.0
+    (coin.get-balance "netflix"))
+
+   (expect "alice now has 18 KDA, since renting is 1 KDA and royalty is 1 KDA" 18.0
+    (coin.get-balance "alice"))
+
+(rollback-tx)
+
+(begin-tx "open-marketplace-rent-subsidized")
+
+(env-data {
+    "buyer-guard":["buyer-guard"],
+    "quote":{
+        "price": 1.0,
+        "recipient": "bob",
+        "recipient-guard": {"keys": ["bob-guard"], "pred":"keys-all"},
+        "designated-buyer":"",
+        "designated-buyer-guard":{"keys": ["buyer"], "pred": "keys-all"},
+        "renter-subsidy":0.5,
+        "rent-interval":2592000.0
+      };
+})
+(env-hash (hash "sale-tx1"))
+
+(use marmalade.ledger)
+
+(env-chain-data {"block-height": 100})
+
+(env-keys ["bob-guard"])
+
+(env-sigs
+  [{'key:'bob-guard
+   ,'caps:
+    [(marmalade.ledger.OFFER "bob-netflix-subscription" "bob" 1.0 110)
+     (marmalade.ledger.OFFER "bob-netflix-subscription" "bob" 1.0 10)
+     ]}
+  ])
+
+(expect-failure "Offer fails due to small timeout"
+  "invalid timeout"
+  (sale 'bob-netflix-subscription 'bob 1.0 10))
+
+(expect "Offer succeeds"
+  true
+  (sale 'bob-netflix-subscription 'bob 1.0 110))
+
+ (expect "Seller bob-netflix-subscription account debited sale amount"
+  0.0
+  (marmalade.ledger.get-balance 'bob-netflix-subscription 'bob ))
+
+(expect "bob-netflix-subscription escrow account credited sale amount"
+  1.0
+  (marmalade.ledger.get-balance 'bob-netflix-subscription (sale-account)))
+;;Event tests
+
+(env-data {
+    "buyer":"alice",
+    "buyer-guard":{"keys":["alice-guard"],"pred":"keys-all"}
+}   
+)
+
+(env-sigs
+    [{'key:'alice-guard,'caps: [
+       (marmalade.ledger.BUY "bob-netflix-subscription" "bob" "alice" 1.0 110 (pact-id)),
+       (coin.TRANSFER "alice" "netflix" 1.0),
+       (coin.TRANSFER "alice" "bob" 1.0)
+     ]}
+     ,{'key:'bob-guard,'caps: [
+        (coin.TRANSFER "bob" "netflix" 1.0)
+      ]}    
+    ])
+  
+  (expect "Buy succeeds"
+    true
+    (continue-pact 1))
+  
+  (expect "bob-netflix-subscription escrow account debited sale amount"
+    0.0
+    (marmalade.ledger.get-balance 'bob-netflix-subscription (sale-account)))
+  
+  (expect "Buyer  account credited sale amount"
+    1.0
+    (marmalade.ledger.get-balance 'bob-netflix-subscription 'alice ))
+  
+  (expect "bob now has 18.5 KDA, since renting paid 1 KDA but he paid 0.5 KDA" 18.5
+    (coin.get-balance "bob"))
+
+  (expect "netflix now has 23 KDA, since royalty paid 1 KDA" 23.0
+    (coin.get-balance "netflix"))
+
+   (expect "alice now has 18.5 KDA, since renting is 1 KDA and royalty is 0.5 KDA" 18.5
+    (coin.get-balance "alice"))
+
+(rollback-tx)
+
+(begin-tx "airdrop-rent")
+
+(env-data {
+    "buyer-guard":["buyer-guard"],
+    "quote":{
+        "price": 0.0,
+        "recipient": "bob",
+        "recipient-guard": {"keys": ["bob-guard"], "pred":"keys-all"},
+        "designated-buyer":"alice",
+        "designated-buyer-guard":{"keys": ["alice-guard"], "pred": "keys-all"},
+        "renter-subsidy":0.0,
+        "rent-interval":2592000.0
+      };
+})
+(env-hash (hash "sale-tx1"))
+
+(use marmalade.ledger)
+
+(env-chain-data {"block-height": 100})
+
+(env-keys ["bob-guard"])
+
+(env-sigs
+  [{'key:'bob-guard
+   ,'caps:
+    [(marmalade.ledger.OFFER "bob-netflix-subscription" "bob" 1.0 110)
+     (marmalade.ledger.OFFER "bob-netflix-subscription" "bob" 1.0 10)
+     ]}
+  ])
+
+(expect-failure "Offer fails due to small timeout"
+  "invalid timeout"
+  (sale 'bob-netflix-subscription 'bob 1.0 10))
+
+(expect "Offer succeeds"
+  true
+  (sale 'bob-netflix-subscription 'bob 1.0 110))
+
+ (expect "Seller bob-netflix-subscription account debited sale amount"
+  0.0
+  (marmalade.ledger.get-balance 'bob-netflix-subscription 'bob ))
+
+(expect "bob-netflix-subscription escrow account credited sale amount"
+  1.0
+  (marmalade.ledger.get-balance 'bob-netflix-subscription (sale-account)))
+;;Event tests
+
+(env-keys ["tom-guard"])
+
+(env-data {
+    "buyer":"tom",
+    "buyer-guard":{"keys":["tom-guard"],"pred":"keys-all"}
+}   
+)
+
+(env-sigs
+    [{'key:'alice-guard,'caps: [
+       (marmalade.ledger.BUY "bob-netflix-subscription" "bob" "tom" 1.0 110 (pact-id)),
+       (coin.TRANSFER "tom" "netflix" 1.0)
+     ]}])
+  
+  (expect-failure "Buy Fails because undesignated buyer"
+    (continue-pact 1))
+
+(env-keys ["alice-guard"])
+
+(env-data {
+    "buyer":"alice",
+    "buyer-guard":{"keys":["alice-guard"],"pred":"keys-all"}
+}   
+)
+
+(env-sigs
+    [{'key:'alice-guard,'caps: [
+       (marmalade.ledger.BUY "bob-netflix-subscription" "bob" "alice" 1.0 110 (pact-id)),
+       (coin.TRANSFER "alice" "netflix" 1.0)
+     ]}])
+  
+  (expect "Buy succeeds"
+    true
+    (continue-pact 1))
+  
+  (expect "bob-netflix-subscription escrow account debited sale amount"
+    0.0
+    (marmalade.ledger.get-balance 'bob-netflix-subscription (sale-account)))
+  
+  (expect "Buyer  account credited sale amount"
+    1.0
+    (marmalade.ledger.get-balance 'bob-netflix-subscription 'alice ))
+  
+  (expect "bob now has 18 KDA, since renting is free" 18.0
+    (coin.get-balance "bob"))
+
+  (expect "netflix now has 23 KDA, since royalty paid 1 KDA" 23.0
+    (coin.get-balance "netflix"))
+
+   (expect "alice now has 19 KDA, since royalty is 1 KDA" 19.0
+    (coin.get-balance "alice"))
+
+(commit-tx)
+
+(begin-tx "withdraw-rental")
+(commit-tx)
