@@ -6,19 +6,22 @@ import "./HeroSection.css";
 function HeroSection() {
   return (
     <div className="hero-container">
+      {/*<Particles />
       <video src="../../public/videos/video-1.mp4" autoPlay loop muted />
+       */}
+
       <h1>Welcome to Subscribe Kadena</h1>
       <p>Protocol for lending tokens using Marmalade</p>
       <div className="hero-btns">
         <Button
-          className="btns"
+          className="glow-on-hover"
           buttonStyle="btn--outline"
           buttonSize="btn--large"
         >
           SIGN UP
         </Button>
         <Button
-          className="btns"
+          className="glow-on-hover"
           buttonStyle="btn--primary"
           buttonSize="btn--large"
           onClick={console.log("hey")}
