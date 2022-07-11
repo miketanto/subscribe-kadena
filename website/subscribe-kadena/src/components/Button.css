@@ -41,3 +41,7 @@
   color: #242424;
   transition: 250ms;
 }
+
+.btn-mobile {
+  margin: 1vw;
+}
