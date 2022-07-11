@@ -1,19 +1,26 @@
-import React, { useState } from "react";
-import styled from "styled-components";
+import React from "react";
 import Navbar from "./components/Navbar";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-// switch => routes
+import "./App.css";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Home from "./components/pages/Home";
+import CreateTokens from "./components/pages/CreateTokens";
+import ConnectWallet from "./components/pages/ConnectWallet";
+import SignUp from "./components/pages/SignUp";
 
-export default function App() {
+function App() {
   return (
     <>
       <Router>
-        <Navbar>
-          <Routes>
-            <Route path="/" exact />
-          </Routes>
-        </Navbar>
+        <Navbar />
+        <Routes>
+          <Route path="/" exact element={<Home />} />
+          <Route path="/connect-wallet" element={<ConnectWallet />} />
+          <Route path="/create-tokens" element={<CreateTokens />} />
+          <Route path="/sign-up" element={<SignUp />} />
+        </Routes>
       </Router>
     </>
   );
 }
+
+export default App;
