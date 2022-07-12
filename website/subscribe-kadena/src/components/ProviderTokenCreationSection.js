@@ -1,7 +1,9 @@
 import React from "react";
 import "../App.css";
+import {testCreateToken, testExtendToken, testMintToken, testWithdrawToken} from '../Marmalade/test/transferPolicyTest'
 import { Button } from "./Button";
 import "./ProviderTokenCreationSection.css";
+
 
 function HeroSection() {
   return (
@@ -13,6 +15,7 @@ function HeroSection() {
           className="btns"
           buttonStyle="btn--outline"
           buttonSize="btn--medium"
+          onClick={()=>testCreateToken()}
         >
           CREATE
         </Button>
@@ -20,6 +23,7 @@ function HeroSection() {
           className="btns"
           buttonStyle="btn--primary"
           buttonSize="btn--medium"
+          onClick={()=>testMintToken()}
         >
           SUBSCRIBE
         </Button>
@@ -27,6 +31,7 @@ function HeroSection() {
           className="btns"
           buttonStyle="btn--outline"
           buttonSize="btn--medium"
+          onClick={()=>testWithdrawToken()}
         >
           WITHDRAW
         </Button>
@@ -34,6 +39,7 @@ function HeroSection() {
           className="btns"
           buttonStyle="btn--primary"
           buttonSize="btn--large"
+          onClick={()=>testExtendToken()}
         >
           EXTEND
         </Button>

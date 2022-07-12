@@ -84,7 +84,7 @@
             (max-supply:decimal (read-decimal 'max-supply ))
             )
     (enforce (>= min-amount 0.0) "Invalid min-amount")
-    (enforce (>= max-supply 0.0) "Invalid max-supply")
+    (enforce (= max-supply 1.0) "Invalid max-supply")
     (insert policies (at 'id token) 
     {"provider-guard":provider-guard, 
     "provider-account":provider-account,
@@ -116,13 +116,14 @@
       amount:decimal
     )
     (enforce-ledger)
+    (enforce-integer amount)
     (bind (get-policy token)
     { 'owner-guard:=owner-guard:guard
     , 'provider-guard := provider-guard:guard
     , 'min-amount:=min-amount:decimal
     , 'max-supply:=max-supply:decimal
     }
-    ;;Only designated owner could mint
+    ;;Only designated owner could m int
     (enforce-guard owner-guard)
     ;;See if there is enough funds in the buyer account
     ;;Transfer funds to the provider account
@@ -220,6 +221,14 @@
       )
   )
  
+  (defun enforce-integer (number:decimal)
+    ;;Floor and ceil are same in an integer 
+    (let* ((floor-number:integer (floor number))
+          (ceil-number:integer (ceiling number)))
+      (enforce (= floor-number ceil-number) "Number must be an integer decimal")
+  ))
+
+
   (defun enforce-transfer:bool
     ( token:object{token-info}
       sender:string
@@ -227,6 +236,7 @@
       receiver:string
       amount:decimal )
     (enforce-ledger)
+    (enforce-integer amount)
     (let* 
       ((sender-guard:guard (at 'guard (coin.details sender)))
        (receiver-guard:guard (at 'guard (coin.details receiver)))      
@@ -299,6 +309,7 @@
     @doc "Capture quote spec for SALE of TOKEN from message"
     (enforce-ledger)
     (enforce-rent-pact sale-id)
+    (enforce-integer amount)
     (let* ( (spec:object{quote-spec} (read-msg QUOTE-MSG-KEY))
             (price:decimal (at 'price spec))
             (recipient:string (at 'recipient spec))
@@ -343,6 +354,7 @@
       sale-id:string )
     (enforce-ledger)
     (enforce-rent-pact sale-id)
+    (enforce-integer amount)
     (with-read quotes sale-id { 'id:= qtoken, 'spec:= spec:object{quote-spec} }
       (enforce (= qtoken (at 'id token)) "incorrect sale token")
       (bind spec
