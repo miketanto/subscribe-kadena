@@ -11,6 +11,8 @@ import { hftAPI } from "../constants/hftApi";
 import { signExecHftCommand, signContHftCommand } from "../utils/apiUtils";
 import { SigData } from "../utils/Pact.SigBuilder";
 import {Wallet, Guard, Sale} from '../types/customTypes'
+import Pact from '../pact-lang-api/pact-lang-api'
+import { creationTime } from "../config/config";
 
 export const saleTokenSignature = (
   wallet:Wallet,
@@ -95,3 +97,48 @@ export const withdrawTokenSignature = (wallet:Wallet, pactId:string, saleObj:Sal
   let result = signContHftCommand(saleId, 0, true, wallet,"",{},[])
   return result
 }
+
+export const offerToken = async (
+  sellerPrivKey:string, tokenId:string, buyerKeyset:any, buyerAccount:string, sellerAccount:string ,sellerKeyset:any, price:any, interval:any, subsidy:any, amount:any, expiryBlock:any
+  ) => {
+    const sellerPubKey =  (Pact.crypto.restoreKeyPairFromSecretKey(sellerPrivKey) as any).publicKey
+    console.log(Number.parseFloat(amount)+ .0)
+    const offer:any= await Pact.fetch.send(
+      {
+        pactCode: `(${hftAPI.contractAddress}.sale "${tokenId}" "${sellerAccount}" 1.0 ${expiryBlock})`,
+        networkId: 'testnet04',
+        keyPairs: [{
+          //EXCHANGE ACCOUNT KEYS
+          //  PLEASE KEEP SAFE
+          publicKey: sellerPubKey, //Signing PubK
+          secretKey: sellerPrivKey,//signing secret key
+          clist: [
+            //capability for gas
+            {
+              name: `coin.GAS`,
+              args: []
+            },{
+              name: `${hftAPI.contractAddress}.OFFER`,
+              args: ["mike-wework-subscription", "mike-subscriber", 1.0, { int:2383896 }]
+            }
+          ]
+          }
+        ],
+        meta: Pact.lang.mkMeta(sellerAccount as string, "1" , 0.000001, 100000, creationTime(), 28800),
+        envData: {
+          quote:{
+            "price": parseFloat(Number.parseFloat(price).toFixed(1)),
+            "recipient": sellerAccount,
+            "recipient-guard": sellerKeyset,
+            "designated-buyer":"",
+            "designated-buyer-guard":{"keys": ["buyer"], "pred": "keys-all"},
+            "renter-subsidy":parseFloat(Number.parseFloat(subsidy).toFixed(2)),
+            "rent-interval":parseFloat(Number.parseFloat(interval).toFixed(1))
+          }, buyer: "buyer"
+        }
+      },
+      `https://api.testnet.chainweb.com/chainweb/0.0/testnet04/chain/1/pact`
+    )
+    const reqKey = offer.requestKeys[0]
+    console.log(reqKey)
+  }

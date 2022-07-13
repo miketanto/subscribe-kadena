@@ -3,11 +3,14 @@ import Marmalade from '../index'
 import {host} from '../config/config'
 import { transferableSubscribeAPI, transferableSubscribeSchema } from '../constants/transferableSubscribeApi'
 import Pact from '../pact-lang-api/pact-lang-api'
-import { extendToken, extendTokenFull, extendTokenSignature, withdrawToken, withdrawTokenSignature } from '../api/tokenFunctions'
+import { extendToken, extendTokenSignature, getSubscriberWithdrawalSig, withdrawToken, withdrawTokenFull, withdrawTokenSharded, withdrawTokenSignature } from '../api/tokenFunctions'
 import { mikeHuluSubInfo } from '../constants/tokenInfo'
+import { offerToken } from '../api/orderBookFunctions'
 
 const providerPrivKey = "9fb09d4a2d472b78e6e7c9965132756d45af6a14c3e78d311ef4af0cf63f5db1"
 const buyerPrivKey = "b48fe54b78709be365b16cf34cab8c1325eb8ab900d4624589fac3706ca56881"
+const renterPrivKey = "606a7c3ace0c494248c3d4d82783f4be2748b1c0c019ac010a0c39be073a439d"
+
 const providerWallet:Wallet = {
     signingKey: "9c5270f49edcf594dfe130db95355ed8414ba6ec706e793897b980e24af6bfb9",
     networkId: "testnet04",
@@ -46,6 +49,11 @@ const buyerKeyset = {
     "keys":["805b8b00155406f7d3546f20c61066be8dbdc410aac7285607ea4f7e2db78567"]
 }
 
+const renterKeyset = {
+    "pred":"keys-all",
+    "keys":["14c65bffdb0ebbf3ea5c8d80991c1025e6e633a9591552e8afbe719c959c2b18"]
+}
+
 export const testCreateToken = async ()=>{
     const testDatumUri:TypeWrapper = await Marmalade.manifest.createUri("contract.schema","pact:schema")
     const testManifestUri:TypeWrapper = await Marmalade.manifest.createUri("image/jpeg;base64", "SOMEIMGDATA")
@@ -62,29 +70,45 @@ export const testCreateToken = async ()=>{
         "trial-period":604800,
         "grace-period":604800,
         "pausable":"false",
-        "expiry-time":"2022-07-11T11:00:00Z",
+        "expiry-time":"2022-01-11T11:00:00Z",
         "interval":2592000,
         "first-start-time":"2022-07-10T11:00:00Z", 
         "min-amount":1.0, 
         "max-supply":1.0
     }
-    const createTokenReqKey = Marmalade.token.createToken(1,"mike-hulu-subscription",transferableSubscribePolicy,transferableSubscribeParams,providerPrivKey,"mike-provider")
+    const createTokenReqKey = Marmalade.token.createToken(1,"mike-wework-subscription",transferableSubscribePolicy,transferableSubscribeParams,providerPrivKey,"mike-provider")
     console.log(createTokenReqKey)
 }
 
 export const testMintToken = ()=>{
-    const mintTokenSigData = Marmalade.token.mintToken("mike-subscriber",buyerPrivKey,"mike-hulu-subscription",1.0,buyerKeyset,1.0,"mike-provider")
+    const mintTokenSigData = Marmalade.token.mintToken("mike-subscriber",buyerPrivKey,"mike-wework-subscription",1.0,buyerKeyset,1.0,"mike-provider")
     console.log(mintTokenSigData)
 }
 
-export const testWithdrawToken = ()=>{
-    const mintTokenSigData = withdrawToken("mike-provider",buyerPrivKey,"mike-subscriber","mike-hulu-subscription",providerKeyset,1.0)
+export const testSignWithdrawal = () =>{
+    const sig = getSubscriberWithdrawalSig("mike-wework-subscription",buyerKeyset,"mike-subscriber","mike-provider",providerKeyset,buyerPrivKey)
+    console.log(sig)
+    return sig
+}
+export const testWithdrawToken = (extensionRawCmd:any, subscriberSig:any)=>{
+    const mintTokenSigData = withdrawToken(extensionRawCmd,subscriberSig,"mike-provider",buyerPrivKey,"mike-subscriber",buyerKeyset,"mike-wework-subscription", providerKeyset,providerPrivKey,1.0)
+    console.log(mintTokenSigData)
+}
+
+export const testWithdrawTokenSharded = ()=>{
+    const mintTokenSigData = withdrawTokenSharded("mike-wework-subscription",buyerPrivKey,providerPrivKey,"mike-subscriber","mike-provider",providerKeyset) 
     console.log(mintTokenSigData)
 }
 
 export const testExtendToken = ()=>{
-    const mintTokenSigData = extendToken("mike-hulu-subscription",mikeHuluSubInfo,buyerPrivKey,providerPrivKey,1.0,"mike-provider", "mike-subscriber")
+    const mintTokenSigData = extendToken("mike-wework-subscription",mikeHuluSubInfo,buyerPrivKey,providerPrivKey,1.0,"mike-provider", "mike-subscriber")
+    const sig = getSubscriberWithdrawalSig("mike-wework-subscription",buyerKeyset,"mike-subscriber","mike-provider",providerKeyset,buyerPrivKey)
     console.log(mintTokenSigData)
+    return sig
+}
+
+export const testOfferToken = ()=>{
+     const offer = offerToken(buyerPrivKey,"mike-wework-subscription",renterKeyset,"mike-renter","mike-subscriber",buyerKeyset,"1.0","2592000.0","0.0","1.0",2383896)
 }
 
 /*

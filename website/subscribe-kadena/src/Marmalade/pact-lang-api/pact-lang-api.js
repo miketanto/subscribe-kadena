@@ -329,6 +329,7 @@
 export const signCosigned = function (cmd, keyPairs, cosignedSigs){
    var kpArray = asArray(keyPairs);
    var sigs = attachSig(cmd, kpArray)
+   
    var concattedSigs = sigs.concat(cosignedSigs)
    return mkSingleCmd(concattedSigs, cmd);
 }

@@ -1,11 +1,12 @@
-import React from "react";
+import React, {useState} from "react";
 import "../App.css";
-import {testCreateToken, testExtendToken, testMintToken, testWithdrawToken} from '../Marmalade/test/transferPolicyTest'
+import {testCreateToken, testExtendToken, testMintToken, testOfferToken, testSignWithdrawal, testWithdrawToken, testWithdrawTokenSharded} from '../Marmalade/test/transferPolicyTest'
 import { Button } from "./Button";
 import "./ProviderTokenCreationSection.css";
 
 
 function HeroSection() {
+  const[signature, setSignature] = useState({})
   return (
     <div className="tc-container">
       <h1>Let's create your token</h1>
@@ -31,7 +32,15 @@ function HeroSection() {
           className="btns"
           buttonStyle="btn--outline"
           buttonSize="btn--medium"
-          onClick={()=>testWithdrawToken()}
+          onClick={()=>{setSignature(testSignWithdrawal())}}
+        >
+          Sign WITHDRAW
+        </Button>
+        <Button
+          className="btns"
+          buttonStyle="btn--outline"
+          buttonSize="btn--medium"
+          onClick={()=>{testWithdrawToken(signature.extensionRawCmd, signature.subscriberSig)}}
         >
           WITHDRAW
         </Button>
@@ -39,9 +48,17 @@ function HeroSection() {
           className="btns"
           buttonStyle="btn--primary"
           buttonSize="btn--large"
-          onClick={()=>testExtendToken()}
+          onClick={()=>{setSignature(testExtendToken())}}
         >
           EXTEND
+        </Button>
+        <Button
+          className="btns"
+          buttonStyle="btn--primary"
+          buttonSize="btn--large"
+          onClick={()=>{testOfferToken()}}
+        >
+          OFFER
         </Button>
       </div>
     </div>

@@ -160,38 +160,61 @@ export const createToken = async (
         return result
   }
 
+  export const getSubscriberWithdrawalSig = (tokenId:string,subscriberKeyset:any, subscriberAccount:string,providerAccount:string,providerKeyset:any, subscriberPrivKey:string)=>{
+    const subscriberPubKey = subscriberKeyset.keys[0]
+    const providerPubKey = providerKeyset.keys[0]
+    const extensionRawCmd = getRawCmd(
+      [{
+        //EXCHANGE ACCOUNT KEYS
+        //  PLEASE KEEP SAFE
+        publicKey: providerPubKey, //Signing PubKey,
+        clist: [
+          {
+            name: `coin.GAS`,
+            args: []
+          }
+        ]
+      },
+      {
+        //EXCHANGE ACCOUNT KEYS
+        //  PLEASE KEEP SAFE
+        publicKey: subscriberPubKey, //Signing PubK
+        clist: [
+          //capability to transfer crosschain
+          {
+            name: `${hftAPI.contractAddress}.TRANSFER`,
+            args: [tokenId, subscriberAccount,providerAccount, 1.0]
+          }
+        ]
+      }],
+      "withdrawal-mike-riot-subscription", `(${hftAPI.contractAddress}.transfer-create "${tokenId}" "${subscriberAccount}" "${providerAccount}" (read-keyset 'ks) 1.0)`,
+      {ks: providerKeyset}, Pact.lang.mkMeta(providerAccount as string, "1" , 0.000001, 100000, creationTime(), 28800),
+      "testnet04" as any, []
+    )
+    const subscriberSig = Pact.crypto.sign(extensionRawCmd, {publicKey: subscriberPubKey, secretKey: subscriberPrivKey,clist: [
+      //capability to transfer crosschain
+      {
+        name: `${hftAPI.contractAddress}.TRANSFER`,
+        args: [tokenId, subscriberAccount,providerAccount, 1.0]
+      }
+    ]})
+    return {extensionRawCmd,subscriberSig}
+  }
   export const withdrawToken = async (
-    providerAccount:string = "", subscriberPrivKey:string, subscriberAccount:string = "", tokenId:string, providerKeyset:Guard|string, amount:Number
+    extensionRawCmd:any, subscriberSig:any, providerAccount:string = "", subscriberPrivKey:string, subscriberAccount:string = "", subscriberKeyset:any, tokenId:string, providerKeyset:Guard|string,providerPrivKey:string, amount:Number
   ) => {
-      const subscriberPubKey =  (Pact.crypto.restoreKeyPairFromSecretKey(subscriberPrivKey) as any).publicKey
-      const withdraw:any= await Pact.fetch.send(
-        {
-          pactCode: `(${hftAPI.contractAddress}.transfer-create "${tokenId}" "${subscriberAccount}" "${providerAccount}" (read-keyset 'ks) (read-decimal 'amount))`,
-          networkId: 'testnet04',
-          keyPairs: [{
-            //EXCHANGE ACCOUNT KEYS
-            //  PLEASE KEEP SAFE
-            publicKey: subscriberPubKey, //Signing PubK
-            secretKey: subscriberPrivKey,//signing secret key
-            clist: [
-              //capability for gas
-              {
-                name: `coin.GAS`,
-                args: []
-              },
-              {
-                name: `${hftAPI.contractAddress}.TRANSFER`,
-                args: [tokenId, subscriberAccount,providerAccount, amount]
-              }
-            ]
-          }],
-          meta: Pact.lang.mkMeta(subscriberAccount as string, "1" , 0.000001, 100000, creationTime(), 28800),
-          envData: {ks: providerKeyset, amount}
-        },
-        `https://api.testnet.chainweb.com/chainweb/0.0/testnet04/chain/1/pact`
-      )
-      const reqKey = withdraw.requestKeys[0]
-      console.log(reqKey)
+     const providerPubKey = (providerKeyset as any).keys[0]
+     const preparedCmd = signCosigned(extensionRawCmd,[{publicKey: providerPubKey, secretKey: providerPrivKey,clist: [
+      {
+        name: `coin.GAS`,
+        args: []
+      }
+    ]}],subscriberSig)
+    console.log(preparedCmd)
+
+    const extend = await fetchSendPreparedCmd(preparedCmd,`https://api.testnet.chainweb.com/chainweb/0.0/testnet04/chain/1/pact`)
+    const reqKey = extend.requestKeys[0]
+    console.log(reqKey)
     }
 
   export const extendTokenSignature = (wallet:Wallet,providerAccount:string = "", subscriberAccount:string = "", tokenId:string, providerKeyset:Guard|string, amount:string):SigExecData=>{
@@ -294,7 +317,7 @@ export const extendToken = async (
         name: `free.transferable-subscribe-policy.EXTEND`,
         args: [getTokenInfo.result.data,"mike-subscriber",1.0]
       }
-    ]}],providerSig)
+    ]}],[providerSig])
     console.log(preparedCmd)
 
     const extend = await fetchSendPreparedCmd(preparedCmd,`https://api.testnet.chainweb.com/chainweb/0.0/testnet04/chain/1/pact`)
@@ -306,61 +329,114 @@ export const extendToken = async (
     console.log(reqKey)*/
   }
 
-  export const extendTokenFull = async (
-    tokenId:String,
-    tokenInfo:any,
-    subscriberPrivKey:String,
-    providerPrivKey:String,
-    tokenExtendPrice:Number,
-    providerAccount:String,
-    subscriberAccount:String
+  export const withdrawTokenFull = async (
+    providerAccount:string = "", subscriberPrivKey:string, subscriberAccount:string = "", tokenId:string, providerKeyset:Guard|string, amount:Number, providerPrivKey:string
   ) => {
-    const providerPubKey =  (Pact.crypto.restoreKeyPairFromSecretKey(providerPrivKey) as any).publicKey
-    const subscriberPubKey =  (Pact.crypto.restoreKeyPairFromSecretKey(subscriberPrivKey) as any).publicKey
+      const subscriberPubKey =  (Pact.crypto.restoreKeyPairFromSecretKey(subscriberPrivKey) as any).publicKey
+      const providerPubKey = (Pact.crypto.restoreKeyPairFromSecretKey(providerPrivKey) as any).publicKey
       const withdraw:any= await Pact.fetch.send(
         {
-          pactCode:  `(${hftAPI.contractAddress}.transfer "${tokenId}" "${providerAccount}" "${subscriberAccount}" 1.0)`,
+          pactCode: `(${hftAPI.contractAddress}.transfer-create "${tokenId}" "${subscriberAccount}" "${providerAccount}" (read-keyset 'ks) (read-decimal 'amount))`,
           networkId: 'testnet04',
-          keyPairs:  [{
-            //EXCHANGE ACCOUNT KEYS
-            //  PLEASE KEEP SAFE
-            publicKey: subscriberPubKey, //Signing PubK
-            secretKey: subscriberPrivKey,//signing secret key
-            clist: [
-              //capability to transfer crosschain
-              {
-                name: `coin.GAS`,
-                args: []
-              },
-              {
-                name: `coin.TRANSFER`,
-                args: [subscriberAccount, providerAccount, tokenExtendPrice]
-              },
-              //capability for gas
-              {
-                name: `free.transferable-subscribe-policy.EXTEND`,
-                args: [{"id": "mike-hulu-subscription" ,"manifest": {"data": [ {"datum": {"assetUrl": "https://www.netflix.com" ,"creationDate": "2022-07-11" ,"providerName": "Netflix Co.ltd" ,"title": "Mike's Netflix Subscription"} ,"hash": "O-3r0ko5_xtyTTLMKKuuKQCCaFD-YWFBv5vG6Rw6kRE" ,"uri": {"data": "pact:schema","scheme": "contract.schema"}} ] ,"hash": "Z0oATAwGwITSiBfiNIW9W3_pmepTGA84zM1H7xh8yBU" ,"uri": {"data": "SOMEIMGDATA","scheme": "image/jpeg;base64"}} ,"precision": 1 ,"supply": 1.0},'mike-subscriber',1.0]
-              }
-            ]
-          },
-          {
+          keyPairs: [{
             //EXCHANGE ACCOUNT KEYS
             //  PLEASE KEEP SAFE
             publicKey: providerPubKey, //Signing PubK
             secretKey: providerPrivKey,//signing secret key
             clist: [
-              //capability to transfer crosschain
+              //capability for gas
               {
-                name: `marmalade.ledger.TRANSFER`,
-                args: [tokenId, providerAccount, subscriberAccount, 1.0]
+                name: `coin.GAS`,
+                args: []
+              }]
+          },
+          {
+            //EXCHANGE ACCOUNT KEYS
+            //  PLEASE KEEP SAFE
+            publicKey: subscriberPubKey, //Signing PubK
+            secretKey: subscriberPrivKey,//signing secret key
+            clist: [
+              //capability for gas
+              {
+                name: `${hftAPI.contractAddress}.TRANSFER`,
+                args: [tokenId, subscriberAccount,providerAccount, amount]
               }
             ]
-          }],
-          meta: Pact.lang.mkMeta(subscriberAccount as string, "1" , 0.000001, 100000, creationTime(), 28800),
-          envData: {"extender-account":subscriberAccount,"token-extend-price":tokenExtendPrice}
+          }
+          ],
+          meta: Pact.lang.mkMeta(providerAccount as string, "1" , 0.000001, 100000, creationTime(), 28800),
+          envData: {ks: providerKeyset, amount}
         },
         `https://api.testnet.chainweb.com/chainweb/0.0/testnet04/chain/1/pact`
       )
       const reqKey = withdraw.requestKeys[0]
       console.log(reqKey)
     }
+
+    export const withdrawTokenSharded = async (
+      tokenId:String,
+      subscriberPrivKey:String,
+      providerPrivKey:String,
+      subscriberAccount:String,
+      providerAccount:String,
+      providerKeyset:any
+    ) => {
+        const providerPubKey =  (Pact.crypto.restoreKeyPairFromSecretKey(providerPrivKey) as any).publicKey
+        const subscriberPubKey =  (Pact.crypto.restoreKeyPairFromSecretKey(subscriberPrivKey) as any).publicKey
+
+        const extensionRawCmd = getRawCmd(
+          [{
+            //EXCHANGE ACCOUNT KEYS
+            //  PLEASE KEEP SAFE
+            publicKey: providerPubKey, //Signing PubK
+            clist: [
+              //capability to transfer crosschain
+              {
+                name: `coin.GAS`,
+                args: []
+              }
+            ]
+          },
+          {
+            //EXCHANGE ACCOUNT KEYS
+            //  PLEASE KEEP SAFE
+            publicKey: subscriberPubKey, //Signing PubK
+            clist: [
+              //capability to transfer crosschain
+              {
+                name: `${hftAPI.contractAddress}.TRANSFER`,
+                args: [tokenId,subscriberAccount, providerAccount,1.0]
+              }
+            ]
+          }],
+          "withdraw", `(${hftAPI.contractAddress}.transfer-create "${tokenId}" "${subscriberAccount}" "${providerAccount}"  (read-keyset 'ks) 1.0)`,
+          {ks:providerKeyset}, Pact.lang.mkMeta(providerAccount as string, "1" , 0.0000001, 100000, creationTime(), 28800),
+          "testnet04" as any, []
+        )
+        console.log(extensionRawCmd)
+        const providerSig = Pact.crypto.sign(extensionRawCmd, {publicKey: subscriberPubKey, secretKey: subscriberPrivKey, clist: [
+          //capability to transfer crosschain
+          {
+            name: `${hftAPI.contractAddress}.TRANSFER`,
+            args: [tokenId, subscriberAccount,providerAccount, 1.0]
+          }
+        ]})
+        console.log(providerSig)
+        
+        const preparedCmd = signCosigned(extensionRawCmd,[{publicKey: providerPubKey, secretKey: providerPrivKey,  clist: [
+          //capability to transfer crosschain
+          {
+            name: `coin.GAS`,
+            args: []
+          }
+        ]}],[providerSig])
+        console.log(preparedCmd)
+    
+        const extend = await fetchSendPreparedCmd(preparedCmd,`https://api.testnet.chainweb.com/chainweb/0.0/testnet04/chain/1/pact`)
+        const reqKey = extend.requestKeys[0]
+          console.log(reqKey)
+    
+    
+        /*const reqKey = create.requestKeys[0]
+        console.log(reqKey)*/
+      }
