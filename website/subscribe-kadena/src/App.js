@@ -6,6 +6,7 @@ import Home from "./components/pages/Home";
 import CreateTokens from "./components/pages/CreateTokens";
 import ConnectWallet from "./components/pages/ConnectWallet";
 import SignUp from "./components/pages/SignUp";
+import ViewSubscriptions from "./components/pages/ViewSubscriptionsPage";
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
           <Route path="/connect-wallet" element={<ConnectWallet />} />
           <Route path="/create-tokens" element={<CreateTokens />} />
           <Route path="/sign-up" element={<SignUp />} />
+          <Route path="/view-subscriptions" element={<ViewSubscriptions />} />
         </Routes>
       </Router>
     </>
