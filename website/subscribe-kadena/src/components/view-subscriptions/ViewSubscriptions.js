@@ -16,7 +16,7 @@ function ViewSubscriptions() {
           </ul>
           <ul className="items">
             <CardItem text="Hulu" />
-            <CardItem text="Costco" />
+            <CardItem text="Lion" />
             <CardItem text="Kams" />
           </ul>
         </div>

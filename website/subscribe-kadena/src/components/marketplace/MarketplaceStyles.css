@@ -1,0 +1,190 @@
+/* THIS IS FOR MARKETPLACECOMPANIES PAGE */
+
+/* Background gradient */
+.subscription_cards_page {
+  padding: 4rem;
+  height: 100%;
+  width: 100%;
+  border: 1px solid black;
+  font-size: 30px;
+  background: linear-gradient(0deg, #1d1471, #c642b6, #5a0f62);
+  background-size: 200% 200%;
+
+  -webkit-animation: Animation 10s ease infinite;
+  -moz-animation: Animation 10s ease infinite;
+  animation: Animation 10s ease infinite;
+}
+
+@-webkit-keyframes Animation {
+  0% {
+    background-position: 10% 0%;
+  }
+  50% {
+    background-position: 91% 100%;
+  }
+  100% {
+    background-position: 10% 0%;
+  }
+}
+@-moz-keyframes Animation {
+  0% {
+    background-position: 10% 0%;
+  }
+  50% {
+    background-position: 91% 100%;
+  }
+  100% {
+    background-position: 10% 0%;
+  }
+}
+@keyframes Animation {
+  0% {
+    background-position: 10% 0%;
+  }
+  50% {
+    background-position: 91% 100%;
+  }
+  100% {
+    background-position: 10% 0%;
+  }
+}
+
+/* header */
+h1 {
+  text-align: center;
+  margin: 0.1vw;
+  color: #fff;
+}
+
+/* This is for the area that the company cards will go in*/
+.company_cards_container {
+  display: flex;
+  flex-flow: column;
+  align-items: center;
+  max-width: 100vw;
+  width: 90%;
+  margin: 0 auto;
+}
+
+.company_cards_wrapper {
+  position: relative;
+  margin: 50px 0 45px;
+}
+
+.company_cards_items {
+  margin-bottom: 24px;
+}
+
+/* These are for the cards themselves */
+.company_cards_item {
+  display: flex;
+  flex: 1;
+  margin: 0 1rem;
+  border-radius: 10%;
+  width: 30vw;
+  height: 15vw;
+}
+
+.company_cards_item_link {
+  display: flex;
+  flex-flow: column;
+  width: 100%;
+  box-shadow: 0 6px 20px rgba(56, 125, 255, 5);
+  -webkit-filter: drop-shadow(0 6px 20px rgba(56, 125, 255, 0.017));
+  filter: drop-shadow(0 6px 20px rgba(56, 125, 255, 0.017));
+  border-radius: 0.75vw;
+  overflow: hidden;
+  text-decoration: none;
+}
+
+/* these are for the image */
+.company_cards_item_pic-wrap {
+  position: relative;
+  width: 100%;
+  padding-top: 30%;
+  overflow: hidden;
+  border-color: black;
+}
+
+.fade-img {
+  animation-name: fade-img;
+  animation-duration: 2s;
+}
+
+.company_cards_item_pic-wrap::after {
+  content: attr(data-category);
+  position: absolute;
+  bottom: 0;
+  margin-left: 10px;
+  padding: 6px 8px;
+  max-width: calc((100%) - 60px);
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  background-color: #1f98f4;
+  box-sizing: border-box;
+}
+
+.company_cards_item_img {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: block;
+  width: 508px;
+  max-width: 100%;
+  height: 185px;
+  max-height: 100%;
+  object-fit: cover;
+  transition: all 0.2s linear;
+}
+
+.company_cards_item_img:hover {
+  transform: scale(1.1);
+}
+
+/* these are for the name of the provider */
+.company_cards_provider_name {
+  padding: 2vw 1.5vw 1.5vw;
+}
+
+.company_cards_text {
+  color: #f5f5dc;
+  font-size: 3vw;
+  line-height: 24px;
+  align-items: center;
+  flex-direction: center;
+  text-align: center;
+}
+
+/* THIS IS FOR SALETOKENCARDPAGE */
+
+.token_market_card_page {
+  padding: 4rem;
+  height: 100%;
+  width: 100%;
+  border: 1px solid black;
+  font-size: 30px;
+  background: linear-gradient(0deg, #1d1471, #c642b6, #5a0f62);
+  background-size: 200% 200%;
+}
+
+/* for display purposes */
+@media only screen and (min-width: 1200px) {
+  .company_content_blog_container {
+    width: 84%;
+  }
+}
+
+@media only screen and (min-width: 1024px) {
+  .company_cards_items {
+    display: flex;
+  }
+}
+
+@media only screen and (max-width: 1024px) {
+  .company_cards_item {
+    margin-bottom: 2rem;
+  }
+}
