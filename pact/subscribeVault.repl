@@ -29,3 +29,9 @@
 (load "SubscribeVault.pact")
 (commit-tx)
 
+(begin-tx)
+(env-sigs [])
+(load "test/fungible.repl")
+(use kip.token-manifest)
+(commit-tx)
+

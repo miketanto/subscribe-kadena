@@ -1,0 +1,205 @@
+ ;;Dependencies Setup
+(begin-tx)
+(env-data
+  { 'ns-admin-keyset: []
+  , 'ns-genesis-keyset:[]
+  , 'ns-operate-keyset:[] })
+(load "root/fungible-v2.pact")
+(load "root/gas-payer-v1.pact")
+(load "root/coin.pact")
+(load "root/ns.pact")
+
+(define-namespace 'kip (sig-keyset) (sig-keyset))
+
+(load "kip/account-protocols-v1.pact")
+(load "kip/manifest.pact")
+(load "kip/token-policy-v1.pact")
+(load "kip/poly-fungible-v2.pact")
+
+(define-namespace 'util (sig-keyset) (sig-keyset))
+(load "util/fungible-util.pact")
+(commit-tx)
+
+(begin-tx)
+(env-data
+ { 'marmalade-admin: ["marmalade-admin"]
+ , 'marmalade-ns-user: ["marmalade-admin"]
+ , 'marmalade-ns-admin: ["marmalade-admin"]
+ , 'ns: "marmalade"
+ , 'upgrade: false })
+ (env-sigs [
+   { 'key: 'marmalade-admin
+    ,'caps: []
+    }])
+(load "ns-marmalade.pact")
+(load "ledger.pact")
+(load "TransferableSubscribePolicyV1.pact")
+(commit-tx)
+
+
+;;Funder Account Setup
+(begin-tx)
+(env-sigs [])
+(load "test/ledger-test-coin.pact")
+(load "test/fungible.repl")
+(use kip.token-manifest)
+(env-data  { 'bob-guard: ["bob"]
+, 'tom-guard: ["tom"]
+, 'netflix-guard: ["netflix"]
+, 'mint-guard: ["mint"]
+, 'burn-guard: ["burn"]
+, 'sale-guard: ["sale"]
+, 'transfer-guard: ["transfer"],
+"provider-guard": ["netflix"],
+"token-mint-price": 5.0,
+"provider-account":"netflix" ,
+"owner-guard":["bob"],
+"renter-guard":[],
+"provider-royalty":0.0,
+"owner-royalty":0.0,
+"trial-period":"2016-07-22T11:26:35Z",
+"grace-period":"2016-07-22T11:26:35Z",
+"pausable":"false",
+"expiry-time":"2022-07-05T11:26:35Z",
+"interval":"0000-00-10T00:00:00Z",
+"first-start-time":"2016-07-22T11:26:35Z", 
+"rent-start-time":"2016-07-22T11:26:35Z", 
+"rent-end-time":"2016-07-22T11:26:35Z", 
+"min-amount":0.0, 
+"max-supply":10000000000.0,
+"extender-account":"netflix",
+"token-extend-price":1.0})
+    ;;Fund the Funder Account
+    (test-capability (coin.CREDIT FUNDER_ACCT))
+    (expect "fund success" true
+    (test-fund FUNDER_ACCT FUNDER_GUARD FUNDER_BALANCE))
+    
+    ;;Create and Fund Account with name 'bob'
+    (coin.create-account "bob" (read-keyset "bob-guard"))
+    (test-capability (ledger-test-coin.DELEGATE FUNDER_ACCT 0))
+    (test-capability (ledger-test-coin.TRANSFER FUNDER_ACCT "bob" 10.0))
+    (test-capability (coin.TRANSFER FUNDER_ACCT "bob" 10.0))
+    (ledger-test-coin.transfer FUNDER_ACCT "bob" 10.0)
+
+    ;;Create and Fund account with name 'netflix'
+    (coin.create-account "netflix" (read-keyset "netflix-guard"))
+    (test-capability (ledger-test-coin.DELEGATE FUNDER_ACCT 0))
+    (test-capability (ledger-test-coin.TRANSFER FUNDER_ACCT "netflix" 10.0))
+    (test-capability (coin.TRANSFER FUNDER_ACCT "netflix" 10.0))
+    (ledger-test-coin.transfer FUNDER_ACCT "netflix" 10.0)
+    
+
+    (env-keys ["netflix"])
+    (use marmalade.ledger)
+    (use kip.token-manifest)
+
+    ;;Testing Create token with help of token-manifest
+    ;Alice becomes the provider in this situation
+    (expect-failure
+    "netflix creates a new token bob-bronze-subscription before initialization"
+    "Manifest is not valid"
+    (create-token
+        "bob-bronze-subscription"
+        12
+        {"uri": (uri "text" "bob-bronze-subscription-uri"),
+        "hash": "wrong-hash",
+        "data": []}
+        free.transferable-subscribe-policy)
+    )
+
+    (expect
+    "netflix creates a new token bob-bronze-subscription"
+    true
+    (create-token
+        "bob-bronze-subscription"
+        12
+        (create-manifest (uri "text" "bob-bronze-subscription-uri") [])
+        free.transferable-subscribe-policy)
+    )
+
+    ;; Test Minting with rightful owner
+    (env-keys ["bob"])
+    
+    (env-sigs [
+        { 'key: "bob"
+        ,'caps:
+            [
+            (MINT "bob-bronze-subscription" "bob" 1.0),
+            (coin.TRANSFER "bob" "netflix" 10.0)
+            ]
+        }
+    ])
+
+    (expect
+        "bob mints a 1.0 of token"
+        true
+        (mint "bob-bronze-subscription" "bob" (read-keyset 'bob-guard ) 1.0))
+    
+    ;;Test Minting with Unrightful owner
+    (env-keys ["tom"])
+  
+    (env-sigs [
+      { 'key: "tom"
+      , 'caps:
+        [
+         (MINT "bob-bronze-subscription" "tom" 1.0),
+         (coin.TRANSFER "tom" "netflix" 10.0)
+        ]
+      }
+     ])
+    (expect-failure
+        "tom tries to mint 1.0 of token with bob as designated owner"
+        ": Failure: Tx Failed: Keyset failure (keys-all): [bob]"
+        (mint "bob-bronze-subscription" "tom" (read-keyset 'tom-guard ) 1.0))
+
+    ;;Test Regular transfer for future extension
+    ;;Extender = netflix-->need to pay 
+    (env-keys ["bob"])
+
+    (env-sigs [
+        { 'key: "bob"
+        ,'caps:
+            [
+            (TRANSFER "bob-bronze-subscription" "bob" "netflix" 1.0),
+            (free.transferable-subscribe-policy.EXTEND  (at 'token (get-policy-info 'bob-bronze-subscription )) "netflix")
+            ]
+        },
+        { 'key: "netflix"
+        ,'caps:
+            [
+            (coin.TRANSFER "netflix" "bob" 1.0)
+            ]
+        }
+    ])
+    (expect
+        "bob initially has 5 kda"
+        5.0
+        (coin.get-balance "bob")
+    )
+    (expect
+        "netflix initially has 15 kda"
+        15.0
+        (coin.get-balance "netflix")
+    )
+
+    (expect
+        "bob transfers 1.0 of token to netflix"
+        true
+        (transfer-create "bob-bronze-subscription" "bob" "netflix" (read-keyset 'netflix-guard ) 1.0))
+
+    (expect
+        "bob supposedly has 6 kda"
+        6.0
+        (coin.get-balance "bob")
+    )
+    (expect
+        "netflix supposedly has 14 kda"
+        14.0
+        (coin.get-balance "netflix")
+    )
+    (expect
+        "netflix now has the bronze subscription"
+        1.0
+        (get-balance "bob-bronze-subscription" "netflix")    
+    )
+(commit-tx)
