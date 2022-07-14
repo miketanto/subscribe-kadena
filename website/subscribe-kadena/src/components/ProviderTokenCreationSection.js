@@ -1,6 +1,6 @@
 import React, {useState} from "react";
 import "../App.css";
-import {testCreateToken, testExtendToken, testMintToken, testOfferToken, testSignWithdrawal, testWithdrawToken, testWithdrawTokenSharded} from '../Marmalade/test/transferPolicyTest'
+import {testBuyToken, testCreateToken, testExtendToken, testMintToken, testOfferToken, testSignWithdrawal, testWithdrawToken, testWithdrawTokenSharded} from '../Marmalade/test/transferPolicyTest'
 import { Button } from "./Button";
 import "./ProviderTokenCreationSection.css";
 
@@ -60,6 +60,16 @@ function HeroSection() {
         >
           OFFER
         </Button>
+
+        <Button
+          className="btns"
+          buttonStyle="btn--primary"
+          buttonSize="btn--large"
+          onClick={()=>{testBuyToken()}}
+        >
+          BUY
+        </Button>
+
       </div>
     </div>
   );

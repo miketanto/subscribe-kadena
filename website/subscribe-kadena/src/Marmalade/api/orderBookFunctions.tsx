@@ -119,7 +119,7 @@ export const offerToken = async (
               args: []
             },{
               name: `${hftAPI.contractAddress}.OFFER`,
-              args: ["mike-wework-subscription", "mike-subscriber", 1.0, { int:2383896 }]
+              args: ["mike-wework-subscription", "mike-subscriber", 1.0, { int:expiryBlock }]
             }
           ]
           }
@@ -136,6 +136,76 @@ export const offerToken = async (
             "rent-interval":parseFloat(Number.parseFloat(interval).toFixed(1))
           }, buyer: "buyer"
         }
+      },
+      `https://api.testnet.chainweb.com/chainweb/0.0/testnet04/chain/1/pact`
+    )
+    const reqKey = offer.requestKeys[0]
+    console.log(reqKey)
+  }
+
+  export const buyToken = async(
+    buyerAccount:string,
+    buyerKeyset: any,
+    buyerPrivKey: string,
+    ownerAccount:string,
+    providerAccount:string,
+    price:any,
+    expiryBlock:any,
+    saleId:string,
+    tokenId:string,
+    royalty:any
+  )=>{
+    /**
+ * A contCmd to Execute at /send endpoint
+ * @typedef {Object} contCmd
+ * @property type {string} - type of command - "cont" or "exec", default to "exec"
+ * @property pactId {string} - pactId the cont command - required for "cont"
+ * @property nonce {string} - nonce value to ensure unique hash - default to current time
+ * @property step {number} - the step of the mutli-step transaction - required for "cont"
+ * @property proof {string} - JSON of SPV proof, required for cross-chain transfer. See `fetchSPV` below
+ * @property rollback {bool} - Indicates if this continuation is a rollback/cancel - required for "cont"
+ * @property envData {object} - JSON of data in command - not required
+ * @property meta {object} - public meta information, see mkMeta
+ * @property networkId {string} network identifier of where the cmd is executed.
+ */
+    const offer:any= await Pact.fetch.send(
+      {
+        type:"cont",
+        pactId: saleId,
+        step:1,
+        rollback:false,
+        proof:"",
+        envData: {
+            "buyer":buyerAccount,
+            "buyer-guard":buyerKeyset
+        },
+        networkId: 'testnet04',
+        keyPairs: [{
+          //EXCHANGE ACCOUNT KEYS
+          //  PLEASE KEEP SAFE
+          publicKey: buyerKeyset.keys[0], //Signing PubK
+          secretKey: buyerPrivKey,//signing secret key
+          clist: [
+            //capability for gas
+            {
+              name: `coin.GAS`,
+              args: []
+            },{
+              name: `${hftAPI.contractAddress}.BUY`,
+              args: ["mike-wework-subscription", "mike-subscriber","mike-renter", 1.0, { int:expiryBlock }, saleId]
+            },
+            {
+              name: "coin.TRANSFER",
+              args: [buyerAccount, providerAccount, royalty]
+            },
+            {
+              name: "coin.TRANSFER",
+              args: [buyerAccount, ownerAccount, price]
+            }
+          ]
+          }
+        ],
+        meta: Pact.lang.mkMeta(buyerAccount as string, "1" , 0.000001, 100000, creationTime(), 28800)
       },
       `https://api.testnet.chainweb.com/chainweb/0.0/testnet04/chain/1/pact`
     )

@@ -5,7 +5,7 @@ import { transferableSubscribeAPI, transferableSubscribeSchema } from '../consta
 import Pact from '../pact-lang-api/pact-lang-api'
 import { extendToken, extendTokenSignature, getSubscriberWithdrawalSig, withdrawToken, withdrawTokenFull, withdrawTokenSharded, withdrawTokenSignature } from '../api/tokenFunctions'
 import { mikeHuluSubInfo } from '../constants/tokenInfo'
-import { offerToken } from '../api/orderBookFunctions'
+import { buyToken, offerToken } from '../api/orderBookFunctions'
 
 const providerPrivKey = "9fb09d4a2d472b78e6e7c9965132756d45af6a14c3e78d311ef4af0cf63f5db1"
 const buyerPrivKey = "b48fe54b78709be365b16cf34cab8c1325eb8ab900d4624589fac3706ca56881"
@@ -111,6 +111,10 @@ export const testOfferToken = ()=>{
      const offer = offerToken(buyerPrivKey,"mike-wework-subscription",renterKeyset,"mike-renter","mike-subscriber",buyerKeyset,"1.0","2592000.0","0.0","1.0",2383896)
 }
 
+export const testBuyToken = ()=>{
+    const buy = buyToken("mike-renter",renterKeyset,renterPrivKey,"mike-subscriber","mike-provider", 1.0, 2383896,"EjQkrOd8rk-GCC765yrfAFjrOmkyAbpm0Ick9HtcmFI",
+    "mike-wework-subscription",1.0)
+}
 /*
 export const testOfferToken = ()=>{
     const offerTokenSigData = Marmalade.transaction.saleTokenSignatureAndObject(testWallet,'mike.tanto',1,2,'mike.tanto',testKeyset,"MKOCOIN",2299000,"coin")

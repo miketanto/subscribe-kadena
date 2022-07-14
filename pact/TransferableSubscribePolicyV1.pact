@@ -47,6 +47,15 @@
     (read policies (at 'id token))
   )
 
+  (defun get-quote (sale-id:string)
+    (with-read quotes sale-id { 'id:= qtoken, 'spec:= spec:object{quote-spec} }
+      {
+        "token-id": id,
+        "quote-spec":spec
+      }
+    )
+  )
+
   (defun enforce-ledger:bool ()
      (enforce-guard (marmalade.ledger.ledger-guard))
    )
