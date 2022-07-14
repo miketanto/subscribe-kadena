@@ -3,6 +3,9 @@ import { Button } from "./Button";
 import { Link } from "react-router-dom";
 import "./Navbar.css";
 
+//image imports
+import Logo from "./images/SubZero_Logo.png";
+
 function Navbar() {
   const [click, setClick] = useState(false);
   const [button, setButton] = useState(true);
@@ -29,8 +32,8 @@ function Navbar() {
       <nav className="navbar">
         <div className="navbar-container">
           <Link to="/" className="navbar-logo" onClick={closeMobileMenu}>
-            Subscribe Kadena
-            <i class="fab fa-typo3" />
+            SubZero Protocol
+            <img className="image-format" src={Logo} alt="Provider Image" />
           </Link>
           <div className="menu-icon" onClick={handleClick}>
             <i className={click ? "fas fa-times" : "fas fa-bars"} />
@@ -67,6 +70,24 @@ function Navbar() {
                 onClick={closeMobileMenu}
               >
                 Sign Up
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link
+                to="/view-subscriptions"
+                className="nav-links"
+                onClick={closeMobileMenu}
+              >
+                View Subscriptions
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link
+                to="/marketplace"
+                className="nav-links"
+                onClick={closeMobileMenu}
+              >
+                Marketplace
               </Link>
             </li>
           </ul>

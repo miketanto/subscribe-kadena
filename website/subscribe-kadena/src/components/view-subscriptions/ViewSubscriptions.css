@@ -1,0 +1,65 @@
+.subscription-cards {
+  padding: 4rem;
+  background-color: #f5f5dc;
+}
+
+h1 {
+  text-align: center;
+}
+
+.inner {
+  position: absolute;
+}
+
+/* The following are for the circle */
+
+.circle {
+  display: flex;
+  width: 10vw;
+  height: 10vw;
+  background: #50c878;
+  /*url("../images/nft-image.jpg") center center/cover no-repeat;*/
+  border-radius: 50%;
+  margin: 30px;
+  transition: transform 0.2s; /* Animation */
+  display: flex;
+  flex: 1;
+  margin: 0 1rem;
+}
+
+.circle:hover {
+  transform: scale(
+    1.1
+  ); /* (110% zoom - Note: if the zoom is too large, it will go outside of the viewport) */
+}
+
+.text {
+  margin: auto;
+  color: #fff;
+}
+
+.container {
+  display: flex;
+  flex-flow: column;
+  align-items: center;
+  max-width: 30vw;
+  width: 90%;
+  margin: 0 auto;
+}
+
+.wrapper {
+  position: relative;
+  margin: 50px 0 45px;
+  flex-direction: row;
+}
+
+.items {
+  margin-bottom: 24px;
+  flex-direction: row;
+}
+
+@media only screen and (min-width: 1024px) {
+  .items {
+    display: flex;
+  }
+}
