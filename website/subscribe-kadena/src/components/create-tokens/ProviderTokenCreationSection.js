@@ -1,7 +1,7 @@
 import React, {useState} from "react";
-import "../App.css";
-import {testBuyToken, testCreateToken, testExtendToken, testMintToken, testOfferToken, testSignWithdrawal, testWithdrawToken, testWithdrawTokenSharded} from '../Marmalade/test/transferPolicyTest'
-import { Button } from "./Button";
+import "../../App.css";
+import {testBuyToken, testCreateToken, testExtendToken, testMintToken, testOfferToken, testSignWithdrawal, testWithdrawToken, testWithdrawTokenSharded} from '../../Marmalade/test/transferPolicyTest'
+import { Button } from "../Button";
 import "./ProviderTokenCreationSection.css";
 
 
