@@ -35,13 +35,15 @@ export async function get(options) {
  */
 export async function create(options) {
   try {
-    const { name, provider,provider_guard,description, website } = options
+    const { name, royalty, interval, provider,provider_guard,description, website } = options
     
       const subscription = {
         name,
         provider,
         provider_guard,
         description,
+        interval,
+        royalty,
         no_items:0,
         floor_price:0.0,
         volume_traded:0.0,

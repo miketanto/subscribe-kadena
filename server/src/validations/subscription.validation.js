@@ -22,6 +22,8 @@ export const create = {
     provider: Joi.string().required(),
     provider_guard: Joi.object().required(),
     description: Joi.string().optional(),
+    interval:Joi.number().required(),
+    royalty:Joi.number().required(),
     website: Joi.string().optional()
   },
 }
