@@ -110,6 +110,7 @@ export const mintToken = async (
     )
     const reqKey = mint.requestKeys[0]
     console.log(reqKey)
+    return reqKey
   }
 
 export const createToken = async (
@@ -145,6 +146,7 @@ export const createToken = async (
       )
       const reqKey = create.requestKeys[0]
       console.log(reqKey)
+      return reqKey
     }
 
     export const withdrawTokenSignature = (wallet:Wallet,providerAccount:string = "", subscriberAccount:string = "", tokenId:string, providerKeyset:Guard|string, amount:string):SigExecData=>{

@@ -13,8 +13,8 @@ router.get(
   validate(subscriptionValidation.get),
   catchAsync(async (req, res, next) => {
     const options = pick(req.query, ['subscription_id', 'provider','name'])
-    const NFTs = await subscriptionService.get({ ...options })
-    res.locals = { nfts: NFTs }
+    const items = await subscriptionService.get({ ...options })
+    res.locals = { subscriptions: items }
     next()
   }),
 )

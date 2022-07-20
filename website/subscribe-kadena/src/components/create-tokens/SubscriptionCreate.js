@@ -5,10 +5,19 @@ function SubscriptionCreate() {
     const [formInput, updateFormInput] = useState({
         name:"",
         provider:"",
-        provider_guard:{},
+        provider_guard:"",
         description:"",
-        website:""
     })
+    const createSubscription = async (options)=>{
+      const parsedOptions = {...options, provider_guard : JSON.parse(options.provider_guard)} 
+      try{
+        axios.post(`${process.env.REACT_APP_SUBSCRIPTION_API}/subscription/create`, parsedOptions).then((res)=>{
+          console.log(res)
+        })
+      }catch(e){
+        console.log(e)
+      }
+    }
   return (
     <div>
 
@@ -87,7 +96,17 @@ function SubscriptionCreate() {
                     updateFormInput({ ...formInput, royalty: e.target.value })
                   }
                 />
-
+                <h5>Price</h5> 
+                <input
+                  type="number"
+                  name="item_royalty"
+                  id="item_royalty"
+                  className="form-control"
+                  placeholder="KDA"
+                  onChange={(e) =>
+                    updateFormInput({ ...formInput, price: e.target.value })
+                  }
+                />
                 <div className="spacer-10"></div>
 
                 <h5>Provider Info</h5>
@@ -123,7 +142,7 @@ function SubscriptionCreate() {
                   }
                   whileTap={{ scale: 0.9 }}
                   onClick={
-                     ()=>console.log("btton")
+                     ()=>createSubscription(formInput)
                   }
                 >
                   Create NFT

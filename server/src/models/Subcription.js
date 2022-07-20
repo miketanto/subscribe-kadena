@@ -12,6 +12,7 @@ export const Subscriptions = sequelize.define('Subscriptions', {
   description: { type: Sequelize.TEXT, allowNull: true },
   interval : {type: Sequelize.INTEGER, allowNull:false},
   royalty: {type: Sequelize.DOUBLE, allowNull:false},
+  price: {type:Sequelize.DOUBLE, allowNull:false},
   no_items: { type: Sequelize.INTEGER, allowNull: false },
   floor_price: { type: Sequelize.DOUBLE, allowNull: true },
   volume_traded: { type: Sequelize.DOUBLE, allowNull: true },

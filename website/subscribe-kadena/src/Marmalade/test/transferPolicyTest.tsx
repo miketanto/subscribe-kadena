@@ -34,7 +34,7 @@ const testDatumInner = {
     "providerName": "Netflix Co.ltd"
   }
 
-const transferableSubscribePolicy:Policy = {
+export const transferableSubscribePolicy:Policy = {
     api:transferableSubscribeAPI,
     schema:transferableSubscribeSchema
 }

@@ -23,7 +23,7 @@ if (envVars.env !== 'test') {
 }
 
 // sync database (create tables if not exist)
-sequelize.sync({force:true})
+sequelize.sync()
 
 // set security HTTP headers
 app.use(helmet())

@@ -4,8 +4,8 @@ import { Link } from "react-router-dom";
 function CompanyCard(props) {
   return (
     <>
-      <li className="company_cards_item">
-        <Link className="company_cards_item_link" to={props.path}>
+      <li className="company_cards_item" onClick={props.onClick}>
+        <div className="company_cards_item_link" >
           <figure
             className="company_cards_item_pic-wrap"
             data-category={props.label}
@@ -19,7 +19,7 @@ function CompanyCard(props) {
           <div className="company_cards_provider_name">
             <h5 className="company_cards_text">{props.text}</h5>
           </div>
-        </Link>
+        </div>
       </li>
     </>
   );
