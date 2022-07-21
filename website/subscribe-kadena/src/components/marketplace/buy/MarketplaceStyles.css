@@ -145,17 +145,72 @@ h1 {
 }
 
 /* these are for the name of the provider */
-.company_cards_provider_name {
-  padding: 2vw 1.5vw 1.5vw;
+
+/* wrapper for entire info section */
+.company_cards_provider_info_wrapper {
+  width: 30vw;
+  height: 6vw;
+  border: 3px solid #73ad21;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.company_cards_text {
+/* wrapper for name of the company */
+.company_cards_name_wrapper {
   color: #f5f5dc;
+  width: 10vw;
   font-size: 3vw;
-  line-height: 24px;
+  display: flex;
+  justify-content: center;
   align-items: center;
-  flex-direction: center;
-  text-align: center;
+}
+
+/* this is for the price and time */
+
+/* wraps both elements */
+.company_cards_sale_info_wrapper {
+  color: #f5f5dc;
+  width: 10vw;
+  display: flex;
+  flex-direction: column;
+}
+
+/* price */
+.company_cards_price {
+  color: #f5f5dc;
+  width: 15vw;
+  font-size: 1vw;
+  display: flex;
+  justify-content: left;
+  align-items: center;
+  margin-bottom: 1.5vw;
+  position: relative;
+}
+
+/* time */
+.company_cards_recur {
+  color: #f5f5dc;
+  width: 15vw;
+  font-size: 1vw;
+  display: flex;
+  justify-content: left;
+  align-items: center;
+  position: relative;
+}
+
+/* This is for the buttons */
+
+.company_cards_buttons_wrapper {
+  width: 10vw;
+  display: flex;
+  flex-direction: column;
+  border: 3px solid blue;
+}
+
+/* Button Styles */
+.buy_button_style {
+  display: flex;
 }
 
 /* THIS IS FOR SALETOKENCARDPAGE */

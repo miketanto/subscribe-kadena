@@ -1,12 +1,20 @@
-import React, {useState} from "react";
-import "../App.css";
-import {testBuyToken, testCreateToken, testExtendToken, testMintToken, testOfferToken, testSignWithdrawal, testWithdrawToken, testWithdrawTokenSharded} from '../Marmalade/test/transferPolicyTest'
-import { Button } from "./Button";
+import React, { useState } from "react";
+import "../../App.css";
+import {
+  testBuyToken,
+  testCreateToken,
+  testExtendToken,
+  testMintToken,
+  testOfferToken,
+  testSignWithdrawal,
+  testWithdrawToken,
+  testWithdrawTokenSharded,
+} from "../../Marmalade/test/transferPolicyTest";
+import { Button } from "../Button";
 import "./ProviderTokenCreationSection.css";
 
-
 function HeroSection() {
-  const[signature, setSignature] = useState({})
+  const [signature, setSignature] = useState({});
   return (
     <div className="tc-container">
       <h1>Let's create your token</h1>
@@ -16,7 +24,7 @@ function HeroSection() {
           className="btns"
           buttonStyle="btn--outline"
           buttonSize="btn--medium"
-          onClick={()=>testCreateToken()}
+          onClick={() => testCreateToken()}
         >
           CREATE
         </Button>
@@ -24,7 +32,7 @@ function HeroSection() {
           className="btns"
           buttonStyle="btn--primary"
           buttonSize="btn--medium"
-          onClick={()=>testMintToken()}
+          onClick={() => testMintToken()}
         >
           SUBSCRIBE
         </Button>
@@ -32,7 +40,9 @@ function HeroSection() {
           className="btns"
           buttonStyle="btn--outline"
           buttonSize="btn--medium"
-          onClick={()=>{setSignature(testSignWithdrawal())}}
+          onClick={() => {
+            setSignature(testSignWithdrawal());
+          }}
         >
           Sign WITHDRAW
         </Button>
@@ -40,7 +50,12 @@ function HeroSection() {
           className="btns"
           buttonStyle="btn--outline"
           buttonSize="btn--medium"
-          onClick={()=>{testWithdrawToken(signature.extensionRawCmd, signature.subscriberSig)}}
+          onClick={() => {
+            testWithdrawToken(
+              signature.extensionRawCmd,
+              signature.subscriberSig
+            );
+          }}
         >
           WITHDRAW
         </Button>
@@ -48,7 +63,9 @@ function HeroSection() {
           className="btns"
           buttonStyle="btn--primary"
           buttonSize="btn--large"
-          onClick={()=>{setSignature(testExtendToken())}}
+          onClick={() => {
+            setSignature(testExtendToken());
+          }}
         >
           EXTEND
         </Button>
@@ -56,7 +73,9 @@ function HeroSection() {
           className="btns"
           buttonStyle="btn--primary"
           buttonSize="btn--large"
-          onClick={()=>{testOfferToken()}}
+          onClick={() => {
+            testOfferToken();
+          }}
         >
           OFFER
         </Button>
@@ -65,11 +84,12 @@ function HeroSection() {
           className="btns"
           buttonStyle="btn--primary"
           buttonSize="btn--large"
-          onClick={()=>{testBuyToken()}}
+          onClick={() => {
+            testBuyToken();
+          }}
         >
           BUY
         </Button>
-
       </div>
     </div>
   );

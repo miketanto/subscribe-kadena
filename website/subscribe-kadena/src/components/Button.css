@@ -24,6 +24,19 @@
   transition: all 0.3s ease-out;
 }
 
+.btn--market {
+  background-color: transparent;
+  color: #fff;
+  border: 1px solid var(--primary);
+  transition: all 0.3s ease-out;
+}
+
+.btn--market--size {
+  height: 1vw;
+  width: 0.5vw;
+  font-size: 3vw;
+}
+
 .btn--medium {
   padding: 8px 20px;
   font-size: 18px;
@@ -35,7 +48,8 @@
 }
 
 .btn--large:hover,
-.btn--medium:hover {
+.btn--medium:hover,
+.btn--market--size {
   transition: all 0.3s ease-out;
   background: #fff;
   color: #242424;

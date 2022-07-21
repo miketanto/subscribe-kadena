@@ -83,11 +83,20 @@ function Navbar() {
             </li>
             <li className="nav-item">
               <Link
-                to="/marketplace"
+                to="/buy-marketplace"
                 className="nav-links"
                 onClick={closeMobileMenu}
               >
                 Marketplace
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link
+                to="/rent-marketplace"
+                className="nav-links"
+                onClick={closeMobileMenu}
+              >
+                Rent Marketplace
               </Link>
             </li>
           </ul>

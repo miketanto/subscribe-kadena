@@ -8,6 +8,7 @@ import ConnectWallet from "./components/pages/ConnectWallet";
 import SignUp from "./components/pages/SignUp";
 import ViewSubscriptions from "./components/pages/ViewSubscriptionsPage";
 import Marketplace from "./components/pages/Marketplace";
+import RentMarketplace from "./components/pages/RentMarketplacePage";
 
 function App() {
   return (
@@ -20,7 +21,8 @@ function App() {
           <Route path="/create-tokens" element={<CreateTokens />} />
           <Route path="/sign-up" element={<SignUp />} />
           <Route path="/view-subscriptions" element={<ViewSubscriptions />} />
-          <Route path="/marketplace" element={<Marketplace />} />
+          <Route path="/buy-marketplace" element={<Marketplace />} />
+          <Route path="/rent-marketplace" element={<RentMarketplace />} />
         </Routes>
       </Router>
     </>
