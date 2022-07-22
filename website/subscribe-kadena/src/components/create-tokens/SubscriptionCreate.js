@@ -174,26 +174,18 @@ function SubscriptionCreate() {
                   </div>
                 </div>
                 <div></div>
-
-                {/*<button
-                  type="button"
-                  id="submit"
-                  className={"btn-main"}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={() => createSubscription(formInput)}
-                >
-                  Create NFT
-                        </button>*/}
-
-                <a className="btn-slice" href="#">
-                  <div class="top">
-                    <span>Sliced Button</span>
+                <div className="btn_wrapper">
+                  <div className="btn-one">
+                    <span
+                      type="button"
+                      id="submit"
+                      className="create_button"
+                      onClick={() => createSubscription(formInput)}
+                    >
+                      Create NFT
+                    </span>
                   </div>
-                  <div class="bottom">
-                    <span>Sliced Button</span>
-                  </div>
-                </a>
+                </div>
               </div>
             </form>
           </div>
