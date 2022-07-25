@@ -5,6 +5,7 @@ import "./Navbar.css";
 
 //image imports
 import Logo from "./images/SubZero_Logo.png";
+import WalletStatus from "./WalletStatus";
 
 function Navbar() {
   const [click, setClick] = useState(false);
@@ -46,15 +47,6 @@ function Navbar() {
             </li>
             <li className="nav-item">
               <Link
-                to="/connect-wallet"
-                className="nav-links"
-                onClick={closeMobileMenu}
-              >
-                Connect Wallet
-              </Link>
-            </li>
-            <li className="nav-item">
-              <Link
                 to="/create-tokens"
                 className="nav-links"
                 onClick={closeMobileMenu}
@@ -90,8 +82,8 @@ function Navbar() {
                 Marketplace
               </Link>
             </li>
+              <WalletStatus/>
           </ul>
-          {button && <Button buttonStyle="btn--outline">SIGN UP</Button>}
         </div>
       </nav>
     </>

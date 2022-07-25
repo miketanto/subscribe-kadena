@@ -91,7 +91,7 @@ export const testSignWithdrawal = () =>{
     return sig
 }
 export const testWithdrawToken = (extensionRawCmd:any, subscriberSig:any)=>{
-    const mintTokenSigData = withdrawToken(extensionRawCmd,subscriberSig,"mike-provider",buyerPrivKey,"mike-subscriber",buyerKeyset,"mike-wework-subscription", providerKeyset,providerPrivKey,1.0)
+    const mintTokenSigData = withdrawToken(extensionRawCmd,subscriberSig, providerKeyset,providerPrivKey)
     console.log(mintTokenSigData)
 }
 

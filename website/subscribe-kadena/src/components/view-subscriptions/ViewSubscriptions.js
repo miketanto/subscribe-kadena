@@ -1,24 +1,32 @@
-import React from "react";
+import axios from "axios";
+import React, {useEffect,useState} from "react";
 import "../../App.css";
 import CardItem from "./SubscriptionCard";
 import "./ViewSubscriptions.css";
 
 function ViewSubscriptions() {
+  const [tokens, setTokens] = useState([])
+  useEffect(() => {
+    axios.get(`${process.env.REACT_APP_SUBSCRIPTION_API}/token/get`)
+    .then((res)=>{
+      console.log(res.data.payload.tokens)
+      setTokens(res.data.payload.tokens)
+    })
+  }, [])
+  
   return (
     <div className="subscription-cards">
       <h1>Your Subscriptions:</h1>
       <div className="container">
         <div className="wrapper">
-          <ul className="items">
-            <CardItem text="Netflix" />
-            <CardItem text="Amazon" />
-            <CardItem text="Disney+" />
-          </ul>
-          <ul className="items">
-            <CardItem text="Hulu" />
-            <CardItem text="Lion" />
-            <CardItem text="Kams" />
-          </ul>
+          {
+            tokens.map((token,key)=>{
+              return(
+                <CardItem token = {token} />
+              )
+            })
+          }
+        
         </div>
       </div>
     </div>

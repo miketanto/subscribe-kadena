@@ -36,14 +36,14 @@ export async function get(options) {
 export async function create(options) {
   try {
     const { name, price, royalty, interval, provider,provider_guard,description, website } = options
-    
+      const intervalSeconds = interval*86400
       const subscription = {
         name,
         provider,
         price,
         provider_guard,
         description,
-        interval,
+        interval: intervalSeconds,
         royalty,
         no_items:0,
         floor_price:0.0,

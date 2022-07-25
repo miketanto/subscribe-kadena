@@ -3,16 +3,18 @@ import Marmalade from '../../Marmalade'
 import Pact from '../../Marmalade/pact-lang-api/pact-lang-api'
 import axios from "axios";
 import { getSubscriberWithdrawalSig } from "../../Marmalade/api/tokenFunctions";
+
 const providerPrivKey = "9fb09d4a2d472b78e6e7c9965132756d45af6a14c3e78d311ef4af0cf63f5db1"
 const buyerPrivKey = "b48fe54b78709be365b16cf34cab8c1325eb8ab900d4624589fac3706ca56881"
+
 export const subscribeToken = async (options)=>{
     const {data, subscription:{
         provider, provider_guard, royalty, interval, name,subscription_id
     }, owner, owner_guard, } = options
     const formattedName = name.toLowerCase().replace(/\s/g, '-');
     const currentTime = new Date().toISOString().slice(0,19).concat('Z')
-    const intervalMilliSeconds = Number(interval)*86400
-    const expiryTime =  new Date(new Date().getTime() + (intervalMilliSeconds)).toISOString().slice(0,19).concat('Z')
+    const expiryTime =  new Date(new Date().getTime() + (interval*1000)).toISOString().slice(0,19).concat('Z')
+    console.log(expiryTime)
     const testDatumUri = await Marmalade.manifest.createUri("contract.schema","pact:schema")
     const testManifestUri = await Marmalade.manifest.createUri("image/jpeg;base64", "SOMEIMGDATA")
     const testDatum = await Marmalade.manifest.createDatum((testDatumUri.value), data)
@@ -30,7 +32,7 @@ export const subscribeToken = async (options)=>{
         "grace-period":604800,
         "pausable":"false",
         "expiry-time":expiryTime,
-        "interval":intervalMilliSeconds/1000,
+        "interval":interval,
         "first-start-time":currentTime, 
         "min-amount":1.0, 
         "max-supply":1.0
@@ -61,10 +63,10 @@ export const subscribeToken = async (options)=>{
         };
     const mintTokenSigData = await Marmalade.token.mintToken(owner,buyerPrivKey,formattedName,1.0,owner_guard,1.0,provider)
     console.log(mintTokenSigData)
-    const {extensionRawCmd,subscriberSig} = getSubscriberWithdrawalSig(name,owner_guard,owner,provider,provider_guard,buyerPrivKey)
+    const {extensionRawCmd,subscriberSig} = getSubscriberWithdrawalSig(formattedName,owner_guard,owner,provider,provider_guard,buyerPrivKey)
     //Make token in database
     const tokenParams = {
-        token_id: name,
+        token_id: formattedName,
         manifest: testManifest.value,
         owner: owner,
         provider:provider,

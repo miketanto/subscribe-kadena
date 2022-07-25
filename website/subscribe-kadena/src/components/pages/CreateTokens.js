@@ -6,7 +6,6 @@ import SubscriptionCreate from "../create-tokens/SubscriptionCreate";
 function CreateTokens() {
   return (
     <>
-      <TokenCreate />
       <SubscriptionCreate/>
     </>
   );

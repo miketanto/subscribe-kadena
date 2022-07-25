@@ -43,11 +43,11 @@
 }
 
 .nav-menu {
-  display: grid;
-  grid-template-columns: repeat(6, auto);
-  grid-gap: 10px;
+  display: flex;
+  flex-direction: row;
   list-style: none;
   text-align: center;
+  align-items: center;
   width: 65vw;
   justify-content: right;
 }

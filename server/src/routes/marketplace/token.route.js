@@ -13,8 +13,8 @@ router.get(
   validate(tokenValidation.get),
   catchAsync(async (req, res, next) => {
     const options = pick(req.query, ['id', 'token_id', 'owner', 'subscription_id'])
-    const NFTs = await tokenService.get({ ...options })
-    res.locals = { nfts: NFTs }
+    const data = await tokenService.get({ ...options })
+    res.locals = { tokens: data }
     next()
   }),
 )

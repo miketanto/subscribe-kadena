@@ -42,7 +42,7 @@ export async function create(options) {
       subscription_id
     } = options
 
-    const intervalInSeconds = Number(interval) * 86400;
+    const intervalInSeconds = Number(interval);
     const first_start_time = formatToPactDate(new Date())
     const expiry_time = formatToPactDate(new Date(new Date().getTime() + (intervalInSeconds*1000)))
       const token = {
