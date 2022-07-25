@@ -3,8 +3,8 @@
 /* Background gradient */
 .subscription_cards_page {
   padding: 4rem;
-  height: 100%;
-  width: 100%;
+  height: 100vw;
+  width: 100vw;
   border: 1px solid black;
   font-size: 30px;
   background: linear-gradient(0deg, #1d1471, #c642b6, #5a0f62);
@@ -150,7 +150,6 @@ h1 {
 .company_cards_provider_info_wrapper {
   width: 30vw;
   height: 6vw;
-  border: 3px solid #73ad21;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -205,7 +204,6 @@ h1 {
   width: 10vw;
   display: flex;
   flex-direction: column;
-  border: 3px solid blue;
 }
 
 /* Button Styles */
