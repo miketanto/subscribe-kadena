@@ -3,13 +3,13 @@ import { Link } from "react-router-dom";
 import { withdrawToken } from "../../Marmalade/api/tokenFunctions";
 import "./ViewSubscriptions.css";
 
-function SubscriptionCard({ token }) {
-  const { text1, text2 } = token;
+function SubscriptionCard(props) {
   return (
     <>
-      <div className="circle">
-        <p className="text">{text1}</p>
-        <p className="text">{text2}</p>
+      <div className="token_container">
+        <div className="subscription_name">{props.name}</div>
+        <div className="circle"></div>
+        <div className="subscription_expiry">Expires in {props.expiry}</div>
       </div>
     </>
   );
