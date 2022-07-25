@@ -23,6 +23,11 @@ function CompanyCard(props) {
             </div>
             <div className="renter_name_wrapper">
               <div className="renter_name">{props.renter_name}</div>
+              <div className="withdraw_button_wrapper">
+                <button type="button" id="withdraw" className="withdraw_button">
+                  Withdraw Token
+                </button>
+              </div>
             </div>
           </div>
         </Link>

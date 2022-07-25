@@ -185,12 +185,15 @@ h1 {
   height: 100%;
   font-size: 3vw;
   display: flex;
+  flex-direction: column;
+  justify-content: right;
 }
 
 /* renter name */
 .renter_name {
   color: #f5f5dc;
-  width: 10vw;
+  width: 95%;
+  height: 50%;
   font-size: 1vw;
   display: flex;
   justify-content: right;
@@ -209,6 +212,25 @@ h1 {
 /* Button Styles */
 .buy_button_style {
   display: flex;
+}
+
+.withdraw_button_wrapper {
+  width: 95%;
+  height: 50%;
+  display: flex;
+  justify-content: right;
+  align-items: bottom;
+}
+
+.withdraw_button {
+  width: 5vw;
+  height: 3vw;
+  text-align: center;
+  background-color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
 }
 
 /* for display purposes */
