@@ -119,7 +119,7 @@ export const offerToken = async (
               args: []
             },{
               name: `${hftAPI.contractAddress}.OFFER`,
-              args: ["mike-wework-subscription", "mike-subscriber", 1.0, { int:expiryBlock }]
+              args: [tokenId, sellerAccount, 1.0, { int:expiryBlock }]
             }
           ]
           }
@@ -140,7 +140,7 @@ export const offerToken = async (
       `https://api.testnet.chainweb.com/chainweb/0.0/testnet04/chain/1/pact`
     )
     const reqKey = offer.requestKeys[0]
-    console.log(reqKey)
+    return reqKey
   }
 
   export const buyToken = async(

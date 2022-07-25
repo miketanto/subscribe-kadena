@@ -11,7 +11,8 @@ export const subscribeToken = async (options)=>{
     const {data, subscription:{
         provider, provider_guard, royalty, interval, name,subscription_id
     }, owner, owner_guard} = options
-    const formattedName = name.toLowerCase().replace(/\s/g, '-');
+    const formattedToken = name.toLowerCase().replace(/\s/g, '-'); 
+    const formattedName = owner.concat(`-${formattedToken}`)
     const currentTime = new Date().toISOString().slice(0,19).concat('Z')
     const expiryTime =  new Date(new Date().getTime() + (interval*1000)).toISOString().slice(0,19).concat('Z')
     console.log(expiryTime)

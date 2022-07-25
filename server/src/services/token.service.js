@@ -9,7 +9,7 @@ import { formatToPactDate } from '../utils/dateFormat'
 
 export async function get(options) {
   try {
-    const { id, token_id, owner,subscription_id } = options
+    const { id, token_id, owner,subscription_id, listed } = options
 
     let data
     // NFT Item ID is provided, get that NFT
@@ -19,6 +19,7 @@ export async function get(options) {
     // Owner is provided, get that owner's NFT Collection
     else if (owner) data = await Tokens.findAll({ where: { owner: owner } })
     else if (subscription_id) data = await Tokens.findAll({ where: { subscription_id: subscription_id } })
+    else if (listed) data = await Tokens.findAll({ where: { listed: true } })
     // Return all Tokens
     else data = await Tokens.findAll()
 
@@ -98,16 +99,18 @@ export async function update(options, NFT) {
 
 export async function list(options,updateOptions) {
   const {id} = options
-  const {rent_interval, renter_subsidy} = updateOptions
-  const intervalSeconds = rent_interval*86400
-  const rentExpiry = new Date(new Date().getTime() + (86400*1000)).toISOString().slice(0,19).concat('Z')
+  const {rent_interval, renter_subsidy, rent_pact_id, rent_price, offer_expiry_block} = updateOptions
+  const rentExpiry = new Date(new Date().getTime() + (rent_interval*1000)).toISOString().slice(0,19).concat('Z')
   try {
     return await Tokens.update(
       {
         listed:true,
-        rent_interval:intervalSeconds,
+        rent_interval:rent_interval,
         rent_expiry :rentExpiry,
-        renter_subsidy:renter_subsidy
+        renter_subsidy:renter_subsidy,
+        rent_pact_id:rent_pact_id,
+        rent_price: rent_price,
+        offer_expiry_block:offer_expiry_block
       },
       { where: { token_id: id } },
     )
