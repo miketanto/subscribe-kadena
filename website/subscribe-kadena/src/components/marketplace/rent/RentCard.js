@@ -7,7 +7,7 @@ function CompanyCard(props) {
   return (
     <>
       <li className="rent_card_item">
-        <Link className="company_cards_item_link" to={props.path}>
+        <Link className="rent_card_item_link" to={props.path}>
           <figure className="rent_pic-wrap" data-category={props.label}>
             <img
               className="company_cards_item_img"
@@ -21,7 +21,7 @@ function CompanyCard(props) {
               <div className="rent_price">Price: {props.price}</div>
               <div className="rent_time">Period: {props.time}</div>
             </div>
-            <div className="renter_name_wrapper">
+            <div className="renter_right_box_wrapper">
               <div className="renter_name">{props.renter_name}</div>
               <div className="withdraw_button_wrapper">
                 <button type="button" id="withdraw" className="withdraw_button">

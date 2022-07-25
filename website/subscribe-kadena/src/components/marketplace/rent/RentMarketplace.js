@@ -13,9 +13,9 @@ import JoesImage from "../../images/joes-image.jpg";
 function RentMarketplace() {
   return (
     <div className="rent_page">
-      <h1 className="subscription-header">Renting Marketplace</h1>
-      <div className="company_cards_container">
-        <div className="company_cards_wrapper">
+      <h1 className="rent-header">Renting Marketplace</h1>
+      <div className="rent_cards_container">
+        <div className="rent_cards_wrapper">
           <ul className="rent_cards_items">
             <RentCard
               path="/services"
