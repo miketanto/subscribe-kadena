@@ -110,6 +110,7 @@ export const mintToken = async (
     )
     const reqKey = mint.requestKeys[0]
     console.log(reqKey)
+    return reqKey
   }
 
 export const createToken = async (
@@ -145,6 +146,7 @@ export const createToken = async (
       )
       const reqKey = create.requestKeys[0]
       console.log(reqKey)
+      return reqKey
     }
 
     export const withdrawTokenSignature = (wallet:Wallet,providerAccount:string = "", subscriberAccount:string = "", tokenId:string, providerKeyset:Guard|string, amount:string):SigExecData=>{
@@ -187,7 +189,7 @@ export const createToken = async (
           }
         ]
       }],
-      "withdrawal-mike-riot-subscription", `(${hftAPI.contractAddress}.transfer-create "${tokenId}" "${subscriberAccount}" "${providerAccount}" (read-keyset 'ks) 1.0)`,
+      tokenId, `(${hftAPI.contractAddress}.transfer-create "${tokenId}" "${subscriberAccount}" "${providerAccount}" (read-keyset 'ks) 1.0)`,
       {ks: providerKeyset}, Pact.lang.mkMeta(providerAccount as string, "1" , 0.000001, 100000, creationTime(), 28800),
       "testnet04" as any, []
     )
@@ -201,7 +203,7 @@ export const createToken = async (
     return {extensionRawCmd,subscriberSig}
   }
   export const withdrawToken = async (
-    extensionRawCmd:any, subscriberSig:any, providerAccount:string = "", subscriberPrivKey:string, subscriberAccount:string = "", subscriberKeyset:any, tokenId:string, providerKeyset:Guard|string,providerPrivKey:string, amount:Number
+    extensionRawCmd:any, subscriberSig:any, providerKeyset:Guard|string,providerPrivKey:string
   ) => {
      const providerPubKey = (providerKeyset as any).keys[0]
      const preparedCmd = signCosigned(extensionRawCmd,[{publicKey: providerPubKey, secretKey: providerPrivKey,clist: [
@@ -214,7 +216,7 @@ export const createToken = async (
 
     const extend = await fetchSendPreparedCmd(preparedCmd,`https://api.testnet.chainweb.com/chainweb/0.0/testnet04/chain/1/pact`)
     const reqKey = extend.requestKeys[0]
-    console.log(reqKey)
+    return reqKey
     }
 
   export const extendTokenSignature = (wallet:Wallet,providerAccount:string = "", subscriberAccount:string = "", tokenId:string, providerKeyset:Guard|string, amount:string):SigExecData=>{
