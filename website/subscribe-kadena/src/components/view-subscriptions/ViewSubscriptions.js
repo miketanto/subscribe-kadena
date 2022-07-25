@@ -1,5 +1,5 @@
 import axios from "axios";
-import React, {useEffect,useState} from "react";
+import React, { useEffect, useState } from "react";
 import "../../App.css";
 import CardItem from "./SubscriptionCard";
 import "./ViewSubscriptions.css";
@@ -7,12 +7,12 @@ import StarfieldAnimation from "react-starfield-animation";
 import { offerRentToken } from "./listRental";
 
 const data = [
-  { text1: "Netflix" },
-  { text1: "Disney+" },
-  { text1: "Hulu" },
-  { text1: "Joes" },
-  { text1: "Kams" },
-  { text1: "Lion" },
+  { name: "Netflix", expiry: "1 month" },
+  { name: "Disney+", expiry: "1 month" },
+  { name: "Hulu", expiry: "1 month" },
+  { name: "Joes", expiry: "1 month" },
+  { name: "Kams", expiry: "1 month" },
+  { name: "Lion", expiry: "1 month" },
 ];
 
 function ViewSubscriptions() {
@@ -26,13 +26,14 @@ function ViewSubscriptions() {
   })
 
   useEffect(() => {
-    axios.get(`${process.env.REACT_APP_SUBSCRIPTION_API}/token/get`)
-    .then((res)=>{
-      console.log(res.data.payload.tokens)
-      setTokens(res.data.payload.tokens)
-    })
-  }, [])
-  
+    axios
+      .get(`${process.env.REACT_APP_SUBSCRIPTION_API}/token/get`)
+      .then((res) => {
+        console.log(res.data.payload.tokens);
+        setTokens(res.data.payload.tokens);
+      });
+  }, []);
+
   return (
     <div className="subscription-cards">
       <StarfieldAnimation
