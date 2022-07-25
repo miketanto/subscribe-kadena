@@ -12,7 +12,7 @@ router.get(
   '/get',
   validate(tokenValidation.get),
   catchAsync(async (req, res, next) => {
-    const options = pick(req.query, ['id', 'token_id', 'owner', 'subscription_id'])
+    const options = pick(req.query, ['id', 'token_id', 'owner', 'subscription_id','listed'])
     const data = await tokenService.get({ ...options })
     res.locals = { tokens: data }
     next()

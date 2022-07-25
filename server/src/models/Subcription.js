@@ -44,6 +44,9 @@ export const Tokens = sequelize.define('Tokens', {
   rent_interval : {type: Sequelize.INTEGER, allowNull:true},
   rent_expiry: {type:Sequelize.TEXT, allowNull:true},
   renter_subsidy: {type: Sequelize.DOUBLE, allowNull:true},
+  rent_price: {type: Sequelize.DOUBLE, allowNull:true},
+  rent_pact_id : {type: Sequelize.TEXT, allowNull:true},
+  offer_expiry_block : {type: Sequelize.INTEGER, allowNull:true},
   withdrawal_sig: {type: Sequelize.JSON, allowNull: false}
 }, {
   timestamps: true,

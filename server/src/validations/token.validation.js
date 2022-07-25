@@ -7,7 +7,8 @@ export const get = {
     id: Joi.number().optional(),
     token_id: Joi.string().optional(),
     owner: Joi.string().optional(),
-    subscription_id: Joi.number().optional()
+    subscription_id: Joi.number().optional(),
+    listed:Joi.boolean().optional()
   },
 }
 
@@ -17,7 +18,10 @@ export const list = {
   },
   body: {
     rent_interval: Joi.number().required(),
-    renter_subsidy:Joi.number().default(0.0)
+    renter_subsidy:Joi.number().default(0.0),
+    rent_pact_id: Joi.string().required(),
+    offer_expiry_block : Joi.number().required(),
+    rent_price: Joi.number().required()
   },
 }
 

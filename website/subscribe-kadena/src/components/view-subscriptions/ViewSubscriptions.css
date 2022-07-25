@@ -25,8 +25,8 @@ h1 {
 
 .circle {
   display: flex;
-  width: 10vw;
-  height: 10vw;
+  width: 20vw;
+  height: 20vw;
   background: #50c878;
   /*url("../images/nft-image.jpg") center center/cover no-repeat;*/
   border-radius: 50%;
@@ -45,7 +45,7 @@ h1 {
   margin: auto;
   color: #fff;
   border: 1px red solid;
-  font-size: 30vw;
+  font-size: 0.5rem;
 }
 
 .container {
