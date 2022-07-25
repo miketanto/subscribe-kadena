@@ -1,0 +1,107 @@
+.view_susbcriptions_page {
+  padding: 4rem;
+  height: 100vh;
+  width: 100vw;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(0deg, #1d1471, #5a0f62);
+  background-position: 50% 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+h1 {
+  text-align: center;
+  font-size: 4vw;
+}
+
+.inner {
+  position: absolute;
+}
+
+/* The following are for the circle */
+
+.circle {
+  display: flex;
+  width: 20vw;
+  height: 20vw;
+  background: #50c878;
+  /*url("../images/nft-image.jpg") center center/cover no-repeat;*/
+  border-radius: 50%;
+  transition: transform 0.2s; /* Animation */
+  margin: 0.5vw;
+  box-shadow: rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px;
+}
+
+.circle:hover {
+  transform: scale(
+    1.1
+  ); /* (110% zoom - Note: if the zoom is too large, it will go outside of the viewport) */
+}
+
+.text {
+  margin: auto;
+  color: #fff;
+  font-size: 10vw;
+}
+
+/* This is for the token */
+
+.token_container {
+  width: 16vw;
+  height: 16vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.subscription_name {
+  width: 11vw;
+  height: 2vw;
+  font-family: "Serif";
+  color: white;
+}
+
+.subscription_expiry {
+  width: 11vw;
+  height: 2vw;
+  display: flex;
+  justify-content: end;
+  font-family: "Serif";
+  color: white;
+}
+
+/* container for all the tokens */
+.subscriptions_container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  width: 90vw;
+  margin-top: 3vw;
+}
+
+.subscriptions_wrapper {
+  position: relative;
+  flex-direction: row;
+  width: 60vw;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+}
+
+.items {
+  margin-bottom: 24px;
+  flex-direction: row;
+}
+
+@media only screen and (min-width: 1024px) {
+  .items {
+    display: flex;
+  }
+}

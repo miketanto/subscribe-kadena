@@ -1,0 +1,179 @@
+(env-enable-repl-natives true)
+(env-data
+  { 'bob: ["bob-guard"]
+  , 'alice: ["alice-guard"]
+  , 'netflix: ["netflix-guard"]
+})
+
+(module transfer-policy-test G
+  " Test suite for fungibles. "
+  (defcap G () true)
+
+  (defconst FUNDER_ACCT "FUNDER_ACCT"
+    "Name of test funding account")
+
+  (defconst FUNDER_GUARD:guard (funder-guard)
+    "Guard for test funding account")
+
+  (defconst FUNDER_BALANCE 10000.0
+    "Initial balance for test funding account")
+
+  (defcap ROTATE ()
+    " Dummy capability for bringing sigs into scope \
+    \ for rotate."
+    true
+  )
+
+  (use kip.token-manifest)
+
+  (defconst ALICE "alice")
+  (defconst ALICE_KEY:string (at 0 (read-msg ALICE)))
+  (defconst ALICE_GUARD (read-keyset ALICE))
+
+  (defconst BOB "bob")
+  (defconst BOB_KEY (at 0 (read-msg BOB)))
+  (defconst BOB_GUARD (read-keyset BOB))
+
+  (defconst NETFLIX "netflix")
+  (defconst NETFLIX_KEY (at 0 (read-msg NETFLIX)))
+  (defconst NETFLIX_GUARD (read-keyset NETFLIX))
+
+  (defconst BOB_NETFLIX_SUBSCRIPTION "bob-netflix-subscription")
+
+  (defun funder-guard ()
+    (create-module-guard "FUNDER_ACCT"))
+
+
+  (defcap DELEGATE (account:string version:integer)
+    "Delegate of user guard to underlying token custody."
+  true)
+
+  (defun delegate-guard (account:string version:integer)
+    (create-user-guard (require-delegate account version))
+  )
+
+  (defun require-delegate (account:string version:integer)
+    true
+  )
+
+  (defun test-fund
+    ( account:string guard:guard amount:decimal )
+    (coin.create-account account (delegate-guard account 0))
+    (coin.credit account (delegate-guard account 0) amount)
+    true
+  )
+
+  (defun fund-create
+    (account:string
+      guard:guard
+      amount:decimal )
+    "Fixture: create and fund ACCOUNT with GUARD for AMOUNT"
+    (install-capability (coin.TRANSFER FUNDER_ACCT account amount))
+    (coin.transfer-create FUNDER_ACCT account guard amount)
+  )
+
+  (defun fund
+    ( account:string
+      amount:decimal )
+    "Fixture: Fund existing ACCOUNT for AMOUNT"
+    (install-capability (coin.TRANSFER FUNDER_ACCT account amount))
+    (coin.transfer FUNDER_ACCT account amount)
+  )
+
+  (defun fund-funder ()
+  (test-capability (coin.CREDIT FUNDER_ACCT))
+  (test-fund FUNDER_ACCT FUNDER_GUARD FUNDER_BALANCE)
+  )
+  ;;
+  ;; TEST SUITE
+  ;;
+
+  (defun suite
+    (skip:string)
+    " Run suite on fungible module F. Requires special account \
+    \ 'FUNDER_ACCT' to exist with 'FUNDER_GUARD' guard and \
+    \ 'FUNDER_BALANCE' balance."
+
+    (test-capability (coin.CREDIT FUNDER_ACCT))
+    (test-fund FUNDER_ACCT FUNDER_GUARD FUNDER_BALANCE)
+    (fixture-tests)
+    (or (contains "create-token-tests" skip)
+      (create-token-tests))
+  )
+
+  (defun fixture-tests:bool ()
+    (expect 
+      "Funder account funded" 
+      10000.0
+      (coin.get-balance FUNDER_ACCT))
+  )
+
+  
+  (defun create-token-tests:bool ()
+    (begin-tx)
+
+    (env-data {
+        "provider-guard": ["netflix-guard"],
+        "owner-guard":["bob-guard"],
+        "token-mint-price": 1.0, 
+        "renter-guard":[],
+        "provider-royalty":0.0,
+        "owner-royalty":0.0,
+        "trial-period":2592000,
+        "grace-period":2592000,
+        "pausable":"false",
+        "expiry-time":"0000-01-01T00:00:00Z",
+        "interval": 2592000,
+        "first-start-time":"2016-07-22T11:26:35Z", 
+        "min-amount":0.0, 
+        "max-supply":10000000000.0})
+
+    (expect-failure
+        "Uncreated token does not exist in tokens table"
+    (marmalade.ledger.get-policy-info BOB_NETFLIX_SUBSCRIPTION))
+  
+    (expect-failure
+        "Uncreated token does not exist in ledger table"
+        (marmalade.ledger.details BOB_NETFLIX_SUBSCRIPTION BOB))
+  
+      (env-keys ["netflix-guard"])
+      
+      ;;Testing Create token with help of token-manifest
+      ;Alice becomes the provider in this situation
+      (expect-failure
+      "Token is being created with invalid manifest"
+      "Manifest is not valid"
+      (marmalade.ledger.create-token
+          BOB_NETFLIX_SUBSCRIPTION
+          12
+          {"uri": (uri "text" "bob-bronze-subscription-uri"),
+          "hash": "wrong-hash",
+          "data": []}
+          free.transferable-subscribe-policy)
+      )
+  
+      (expect
+      "Token is created with valid manifest. Provider:Netflix, Owner:Bob"
+      true
+      (marmalade.ledger.create-token
+          BOB_NETFLIX_SUBSCRIPTION
+          12
+          (create-manifest (uri "text" "bob-netflix-subscription-uri") [])
+          free.transferable-subscribe-policy)
+      )
+  
+      (expect
+        "Token successfully created with correct policy info"
+        { 'policy: free.transferable-subscribe-policy
+        , 'token:
+          { 'id: BOB_NETFLIX_SUBSCRIPTION
+          , 'supply: 0.0
+          , 'precision: 12
+          , 'manifest: (create-manifest (uri "text" "bob-netflix-subscription-uri") [])
+        } }
+        (marmalade.ledger.get-policy-info BOB_NETFLIX_SUBSCRIPTION))
+  
+    (rollback-tx)
+    true
+  )
+)

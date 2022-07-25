@@ -1,0 +1,243 @@
+/* full page div */
+.create_page {
+  background: url("../images/spaceBackground.jpg") center center/cover no-repeat;
+  /* background-color: white; */
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  box-shadow: inset 0 0 0 1000px rgba(0, 0, 0, 0.2);
+  object-fit: contain;
+}
+
+.create_page > h1 {
+  color: #fff;
+  font-size: 100px;
+  margin-top: -100px;
+}
+
+.create_page > h5 {
+  color: #fff;
+  font-size: 3vw;
+}
+
+.create_page > p {
+  margin-top: 8px;
+  color: #fff;
+  font-size: 32px;
+  font-family: "Trebuchet MS", "Lucida Sans Unicode", "Lucida Grande",
+    "Lucida Sans", Arial, sans-serif;
+}
+
+/* textboxes */
+
+.section_wrapper {
+  width: 31vw;
+  height: 4vw;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+
+.textbox_tag {
+  width: 10vw;
+  height: 3vw;
+  display: flex;
+  text-align: center;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5vw;
+  font-weight: bold;
+  font-family: "Trebuchet MS";
+  color: white;
+  overflow-wrap: break-word;
+}
+
+::-webkit-input-placeholder {
+  /* Chrome/Opera/Safari */
+  color: #fff;
+  text-align: center;
+  align-items: center;
+  justify-content: center;
+}
+
+::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* for the textbox */
+
+/* wraps textbox */
+.textbox_wrapper {
+  width: 25vw;
+  height: 4vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* textbox itself */
+.textbox {
+  /* sizing */
+  width: 20vw;
+  height: 3vw;
+  background-color: transparent;
+  position: relative;
+
+  /* display */
+  z-index: 5;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  overflow: hidden;
+
+  /* center */
+  clear: left;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  -webkit-box-align: center;
+  -webkit-align-items: center;
+  -ms-flex-align: center;
+  align-items: center;
+  justify-content: center;
+
+  /* make circular */
+  border-radius: 9999vw;
+
+  /* font stuff */
+  font-family: "Inter Display", sans-serif;
+  color: #fff;
+  font-size: 1.125em;
+  line-height: 1;
+  font-weight: 600;
+  text-align: center;
+  letter-spacing: -0.01em;
+  border: 0;
+  box-shadow: rgb(204, 219, 232) 3px 3px 6px 0px inset,
+    rgba(255, 255, 255, 0.5) -3px -3px 6px 1px inset;
+}
+
+.provider_info_container {
+  width: 31vw;
+  height: 10vw;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+
+.provider_info_textbox_container {
+  width: 20vw;
+  height: 8vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* buttons */
+
+.btn_wrapper {
+  height: 4vw;
+  width: 16vw;
+}
+.btn-one {
+  color: #fff;
+  transition: all 0.3s;
+  position: relative;
+  transition: all 0.3s;
+  display: flex;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+  width: 15vw;
+  height: 3vw;
+}
+
+.btn-one::before {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  opacity: 0;
+  transition: all 0.3s;
+  border-top-width: 1px;
+  border-bottom-width: 1px;
+  border-top-style: solid;
+  border-bottom-style: solid;
+  border-top-color: rgba(255, 255, 255, 0.5);
+  border-bottom-color: rgba(255, 255, 255, 0.5);
+  transform: scale(0.1, 1);
+}
+.btn-one:hover span {
+  letter-spacing: 2px;
+  text-align: center;
+}
+.btn-one:hover::before {
+  opacity: 1;
+  transform: scale(1, 1);
+}
+.btn-one::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 15vw;
+  height: 3vw;
+  z-index: 1;
+  transition: all 0.3s;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+.btn-one:hover::after {
+  opacity: 0;
+  transform: scale(0.1, 1);
+}
+
+.tc-btns {
+  margin-top: 32px;
+}
+
+.tc-btns .btn {
+  margin: 6px;
+}
+
+.fa-play-circle {
+  margin-left: 4px;
+}
+
+@media screen and (max-width: 960px) {
+  .hero-container > h1 {
+    font-size: 70px;
+    margin-top: -150px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .hero-container > h1 {
+    font-size: 50px;
+    margin-top: -100px;
+  }
+
+  .hero-container > p {
+    font-size: 30px;
+  }
+
+  .btn-mobile {
+    display: block;
+    text-decoration: none;
+  }
+
+  .btn {
+    width: 100%;
+  }
+}

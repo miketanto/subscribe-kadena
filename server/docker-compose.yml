@@ -1,0 +1,16 @@
+version: '3'
+
+services:
+  app:
+    build: .
+    user: root
+    image: iblock-core-server
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    ports:
+      - "${PORT_EXPOSE}:${PORT}"
+    networks:
+      - default
+    env_file:
+      - .env

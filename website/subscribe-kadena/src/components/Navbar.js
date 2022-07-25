@@ -1,21 +1,21 @@
-import React from "react";
-import { Link } from "react-router-dom";
-import { useState, useEffect } from "react";
-import "./Navbar.css";
+import React, { useState, useEffect } from "react";
 import { Button } from "./Button";
+import { Link } from "react-router-dom";
+import "./Navbar.css";
+
+//image imports
+import Logo from "./images/SubZero_Logo.png";
+import WalletStatus from "./WalletStatus";
 
 function Navbar() {
-  // create state variables
   const [click, setClick] = useState(false);
   const [button, setButton] = useState(true);
 
-  //for clicks
   const handleClick = () => setClick(!click);
-  //close the menu
   const closeMobileMenu = () => setClick(false);
 
   const showButton = () => {
-    if (window.innerwidth <= 960) {
+    if (window.innerWidth <= 960) {
       setButton(false);
     } else {
       setButton(true);
@@ -25,7 +25,7 @@ function Navbar() {
   useEffect(() => {
     showButton();
   }, []);
-  // show button when window is resized
+
   window.addEventListener("resize", showButton);
 
   return (
@@ -33,12 +33,13 @@ function Navbar() {
       <nav className="navbar">
         <div className="navbar-container">
           <Link to="/" className="navbar-logo" onClick={closeMobileMenu}>
-            Subscribe Kadena <i class="fa-solid fa-bomb"></i>
+            SubZero Protocol
+            <img className="image-format" src={Logo} alt="Provider Image" />
           </Link>
           <div className="menu-icon" onClick={handleClick}>
             <i className={click ? "fas fa-times" : "fas fa-bars"} />
           </div>
-          <ul className={click ? "nav-menu-active" : "nav-menu"}>
+          <ul className={click ? "nav-menu active" : "nav-menu"}>
             <li className="nav-item">
               <Link to="/" className="nav-links" onClick={closeMobileMenu}>
                 Home
@@ -46,55 +47,52 @@ function Navbar() {
             </li>
             <li className="nav-item">
               <Link
-                to="/services"
+                to="/create-tokens"
                 className="nav-links"
                 onClick={closeMobileMenu}
               >
-                Services
+                Create Tokens
+              </Link>
+            </li>
+
+            <li>
+              <Link
+                to="/sign-up"
+                className="nav-links-mobile"
+                onClick={closeMobileMenu}
+              >
+                Sign Up
               </Link>
             </li>
             <li className="nav-item">
               <Link
-                to="/products"
+                to="/view-subscriptions"
                 className="nav-links"
                 onClick={closeMobileMenu}
               >
-                Products
+                View Subscriptions
               </Link>
             </li>
-            <li>
+            <li className="nav-item">
               <Link
-                to="/create"
-                className="nav-links-mobile"
+                to="/buy-marketplace"
+                className="nav-links"
                 onClick={closeMobileMenu}
               >
-                Create
+                Marketplace
               </Link>
             </li>
-            <li>
+            <li className="nav-item">
               <Link
-                to="/subscribe"
-                className="nav-links-mobile"
+                to="/rent-marketplace"
+                className="nav-links"
                 onClick={closeMobileMenu}
               >
-                Subscribe
+                Rent Marketplace
               </Link>
             </li>
-            <li>
-              <Link
-                to="/extend"
-                className="nav-links-mobile"
-                onClick={closeMobileMenu}
-              >
-                Extend
-              </Link>
-            </li>
+              <WalletStatus/>
           </ul>
-          {button && <Button buttonStyle="bin--outline">Create</Button>}
-
-          {button && <Button buttonStyle="bin--outline">Subscribe</Button>}
-
-          {button && <Button buttonStyle="bin--outline">Extend</Button>}
         </div>
       </nav>
     </>
