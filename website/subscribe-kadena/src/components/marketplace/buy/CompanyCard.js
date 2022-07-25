@@ -5,8 +5,8 @@ import { Button } from "../../Button.js";
 function CompanyCard(props) {
   return (
     <>
-      <li className="company_cards_item">
-        <Link className="company_cards_item_link" to={props.path}>
+      <li className="company_cards_item" >
+        <div className="company_cards_item_link">
           <figure
             className="company_cards_item_pic-wrap"
             data-category={props.label}
@@ -30,12 +30,13 @@ function CompanyCard(props) {
                 className="buy_button_style"
                 buttonStyle="btn--market"
                 buttonSize="btn--market-size"
+                onClick = {props.onClick}
               >
                 SIGN UP
               </Button>
             </div>
           </div>
-        </Link>
+        </div>
       </li>
     </>
   );

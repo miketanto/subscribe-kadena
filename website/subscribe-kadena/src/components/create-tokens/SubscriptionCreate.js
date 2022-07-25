@@ -175,12 +175,12 @@ function SubscriptionCreate() {
                 </div>
                 <div></div>
                 <div className="btn_wrapper">
-                  <div className="btn-one">
+                  <div className="btn-one"
+                  onClick={() => createSubscription(formInput)}>
                     <span
                       type="button"
                       id="submit"
                       className="create_button"
-                      onClick={() => createSubscription(formInput)}
                     >
                       Create NFT
                     </span>

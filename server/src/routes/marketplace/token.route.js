@@ -46,8 +46,8 @@ router.post(
   validate(tokenValidation.list),
   catchAsync(async (req, res, next) => {
     const options = pick(req.query, ['id'])
-    const listOptions = req.body
-    res.locals = await tokenService.list({ ...options, user: req.user }, listOptions)
+    const updateOptions = req.body
+    res.locals = await tokenService.list(options, updateOptions)
     next()
   }),
 )

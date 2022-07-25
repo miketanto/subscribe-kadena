@@ -13,12 +13,11 @@ export const get = {
 
 export const list = {
   query: {
-    id: Joi.number().required(),
+    id: Joi.string().required(),
   },
   body: {
-    useGco: Joi.bool().required(),
-    price: Joi.number().required(),
-    amount: Joi.number().required(),
+    rent_interval: Joi.number().required(),
+    renter_subsidy:Joi.number().default(0.0)
   },
 }
 

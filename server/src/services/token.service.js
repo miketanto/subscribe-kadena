@@ -59,7 +59,8 @@ export async function create(options) {
         first_start_time,
         min_amount:1.0,
         max_supply:1.0,
-        subscription_id
+        subscription_id,
+        listed:false
         }
     console.log('Created')
     return await Tokens.create(token)
@@ -94,22 +95,21 @@ export async function update(options, NFT) {
   }
 }
 
-export async function list(options, listingOptions) {
+
+export async function list(options,updateOptions) {
+  const {id} = options
+  const {rent_interval, renter_subsidy} = updateOptions
+  const intervalSeconds = rent_interval*86400
+  const rentExpiry = new Date(new Date().getTime() + (86400*1000)).toISOString().slice(0,19).concat('Z')
   try {
-    const { user: { signer }, id } = options
-    const { price, useGco, amount } = listingOptions
-    // console.log(options)
-    // console.log(listingOptions)
-    const listing = await listMarketItem(id, signer, price, useGco, amount)
     return await Tokens.update(
       {
-        price,
-        currency: useGco ? 'GCO' : 'MCO',
-        listing_status: true,
+        listed:true,
+        rent_interval:intervalSeconds,
+        rent_expiry :rentExpiry,
+        renter_subsidy:renter_subsidy
       },
-      {
-        where: { item_id: options.id },
-      },
+      { where: { token_id: id } },
     )
   } catch (e) {
     console.log(e)

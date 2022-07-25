@@ -1,4 +1,5 @@
-import React from "react";
+import axios from "axios";
+import React, {useEffect,useState} from "react";
 import "../../App.css";
 import CardItem from "./SubscriptionCard";
 import "./ViewSubscriptions.css";
@@ -14,6 +15,15 @@ const data = [
 ];
 
 function ViewSubscriptions() {
+  const [tokens, setTokens] = useState([])
+  useEffect(() => {
+    axios.get(`${process.env.REACT_APP_SUBSCRIPTION_API}/token/get`)
+    .then((res)=>{
+      console.log(res.data.payload.tokens)
+      setTokens(res.data.payload.tokens)
+    })
+  }, [])
+  
   return (
     <div className="subscription-cards">
       <StarfieldAnimation

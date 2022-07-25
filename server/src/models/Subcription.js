@@ -40,6 +40,10 @@ export const Tokens = sequelize.define('Tokens', {
   min_amount: {type: Sequelize.DOUBLE, allowNull:false},
   max_supply: {type: Sequelize.DOUBLE, allowNull:false},
   tx_raw_cmd: {type: Sequelize.TEXT, allowNull:false},
+  listed : {type: Sequelize.BOOLEAN, allowNull:false},
+  rent_interval : {type: Sequelize.INTEGER, allowNull:true},
+  rent_expiry: {type:Sequelize.TEXT, allowNull:true},
+  renter_subsidy: {type: Sequelize.DOUBLE, allowNull:true},
   withdrawal_sig: {type: Sequelize.JSON, allowNull: false}
 }, {
   timestamps: true,

@@ -1,4 +1,4 @@
-import React from "react";
+import React,{useState} from "react";
 import Navbar from "./components/Navbar";
 import "./App.css";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
@@ -9,10 +9,14 @@ import SignUp from "./components/pages/SignUp";
 import ViewSubscriptions from "./components/pages/ViewSubscriptionsPage";
 import Marketplace from "./components/pages/Marketplace";
 import RentMarketplace from "./components/pages/RentMarketplacePage";
+import { WalletContext } from "./components/context/WalletContext";
 
 function App() {
+  const [wallet, setWallet] = useState(null)
+  const value = {wallet,setWallet}
   return (
     <>
+    <WalletContext.Provider value = {value}>
       <Router>
         <Navbar />
         <Routes>
@@ -25,6 +29,7 @@ function App() {
           <Route path="/rent-marketplace" element={<RentMarketplace />} />
         </Routes>
       </Router>
+    </WalletContext.Provider>
     </>
   );
 }
