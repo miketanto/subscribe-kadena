@@ -76,7 +76,8 @@ export const subscribeToken = async (options)=>{
         interval: interval,
         tx_raw_cmd: extensionRawCmd,
         withdrawal_sig: subscriberSig,
-        subscription_id: subscription_id
+        subscription_id: subscription_id,
+        royalty: royalty
       }
     axios.post(`${process.env.REACT_APP_SUBSCRIPTION_API}/token/create`, tokenParams).then((res)=>{
         console.log(res)

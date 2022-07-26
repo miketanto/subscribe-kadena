@@ -192,7 +192,7 @@ export const offerToken = async (
               args: []
             },{
               name: `${hftAPI.contractAddress}.BUY`,
-              args: ["mike-wework-subscription", "mike-subscriber","mike-renter", 1.0, { int:expiryBlock }, saleId]
+              args: [tokenId, ownerAccount,buyerAccount, 1.0, { int:expiryBlock }, saleId]
             },
             {
               name: "coin.TRANSFER",
@@ -211,4 +211,5 @@ export const offerToken = async (
     )
     const reqKey = offer.requestKeys[0]
     console.log(reqKey)
+    return reqKey
   }
