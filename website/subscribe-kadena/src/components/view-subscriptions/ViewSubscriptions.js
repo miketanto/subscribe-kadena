@@ -2,9 +2,8 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import "../../App.css";
 import CardItem from "./SubscriptionCard";
-import "./ViewSubscriptions.css";
-import StarfieldAnimation from "react-starfield-animation";
 import { offerRentToken } from "./listRental";
+import "./ViewSubscriptions.css";
 
 const data = [
   { name: "Netflix", expiry: "1 month" },
@@ -16,7 +15,7 @@ const data = [
 ];
 
 function ViewSubscriptions() {
-  const [tokens, setTokens] = useState([])
+  const [tokens, setTokens] = useState([]);
   const [selectedToken, setSelectedToken] = useState()
   const [formInput, updateFormInput] = useState({
     rent_interval:"",
@@ -24,7 +23,6 @@ function ViewSubscriptions() {
     expiry_block:"",
     rent_price:""
   })
-
   useEffect(() => {
     axios
       .get(`${process.env.REACT_APP_SUBSCRIPTION_API}/token/get`)
@@ -35,23 +33,15 @@ function ViewSubscriptions() {
   }, []);
 
   return (
-    <div className="subscription-cards">
-      <StarfieldAnimation
-        style={{
-          position: "absolute",
-          width: "100%",
-          height: "100%",
-        }}
-        numParticles={500}
-        particleSpeed={0}
-        dx={0.00000000000000001} // x speed of stars in px/frame, default 0.05
-        dy={0.00000000000000001}
-      />
-      <h1>Your Subscriptions:</h1>
-      <div className="container">
-        <div className="wrapper">
+    <div className="view_susbcriptions_page">
+      <h1>Your Subscriptions</h1>
+      <div className="subscriptions_container">
+        <div className="subscriptions_wrapper">
+          {/*{data.map((key, token) => (
+            <CardItem token={token} />
+          ))}*/}
           {tokens.map((token, key) => (
-            <CardItem token={token} onClick = {()=>setSelectedToken(token)} />
+            <CardItem name={token.token_id} expiry = {token.expiry_time} onClick = {()=>setSelectedToken(token)} />
           ))}
         </div>
       </div>
