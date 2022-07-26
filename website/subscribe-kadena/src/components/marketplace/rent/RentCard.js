@@ -22,10 +22,10 @@ function CompanyCard(props) {
               <div className="rent_time">Period: {props.time}</div>
             </div>
             <div className="renter_right_box_wrapper">
-              <div className="renter_name">{props.renter_name}</div>
               <div className="withdraw_button_wrapper">
-                <button type="button" id="withdraw" className="withdraw_button">
-                  Withdraw Token
+                <button type="button" id="withdraw" className="withdraw_button"
+                onClick={props.onClick}>
+                  Rent Token
                 </button>
               </div>
             </div>

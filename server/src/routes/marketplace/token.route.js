@@ -57,7 +57,8 @@ router.post(
   validate(tokenValidation.buy),
   catchAsync(async (req, res, next) => {
     const options = pick(req.query, ['id'])
-    res.locals = await tokenService.buy({ ...options, user: req.user })
+    const withdrawOptions = req.body
+    res.locals = await tokenService.buy(options,withdrawOptions)
     next()
   }),
 )

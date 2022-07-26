@@ -25,15 +25,21 @@ export const list = {
   },
 }
 
-export const buy = {
+export const deleter = {
   query: {
     id: Joi.number().required(),
   },
 }
 
-export const deleter = {
+export const buy = {
   query: {
-    id: Joi.number().required(),
+    id: Joi.string().required(),
+  },
+  body: {
+    rent_tx_raw_cmd: Joi.string().required(),
+    rent_withdrawal_sig :Joi.object().required(),
+    renter: Joi.string().required(),
+    renter_guard: Joi.object().required()
   },
 }
 
@@ -48,7 +54,8 @@ export const create = {
     interval: Joi.number().required(),
     tx_raw_cmd: Joi.string().required(),
     withdrawal_sig: Joi.object().required(),
-    subscription_id: Joi.number().required()
+    subscription_id: Joi.number().required(),
+    royalty: Joi.number().required()
   }
 }
 

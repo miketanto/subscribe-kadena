@@ -40,7 +40,8 @@ export async function create(options) {
   try {
    const { token_id, manifest,owner,provider,owner_guard, 
       provider_guard, interval, tx_raw_cmd, withdrawal_sig,
-      subscription_id
+      subscription_id,
+      royalty
     } = options
 
     const intervalInSeconds = Number(interval);
@@ -61,6 +62,7 @@ export async function create(options) {
         min_amount:1.0,
         max_supply:1.0,
         subscription_id,
+        royalty:royalty, 
         listed:false
         }
     console.log('Created')
@@ -100,13 +102,11 @@ export async function update(options, NFT) {
 export async function list(options,updateOptions) {
   const {id} = options
   const {rent_interval, renter_subsidy, rent_pact_id, rent_price, offer_expiry_block} = updateOptions
-  const rentExpiry = new Date(new Date().getTime() + (rent_interval*1000)).toISOString().slice(0,19).concat('Z')
   try {
     return await Tokens.update(
       {
         listed:true,
         rent_interval:rent_interval,
-        rent_expiry :rentExpiry,
         renter_subsidy:renter_subsidy,
         rent_pact_id:rent_pact_id,
         rent_price: rent_price,
@@ -121,26 +121,30 @@ export async function list(options,updateOptions) {
   }
 }
 
-export async function buy(options) {
+export async function buy(options,withdrawOptions) {
   try {
-    const { user: { address, signer }, id } = options
+    const { id } = options
+    const {rent_tx_raw_cmd, rent_withdrawal_sig, renter, renter_guard} = withdrawOptions
+
+    
     const data = await Tokens.findOne({
-      where: { item_id: id },
+      where: { token_id: id },
     })
-    const nftData = {
-      price: data.price,
-      itemId: Number(data.item_id),
-      tokenId: Number(data.token_id),
-      useGco: (data.currency === 'GCO'),
-    }
-    const listing = await buyNFT(nftData, signer)
+
+    const rentExpiry = new Date(new Date().getTime() 
+    + (data.rent_interval*1000)).toISOString().slice(0,19).concat('Z')
+
     return await Tokens.update(
       {
-        listing_status: false,
-        current_owner: address,
+        listed: false,
+        renter: renter,
+        renter_guard:renter_guard,
+        rent_expiry:rentExpiry,
+        rent_tx_raw_cmd:rent_tx_raw_cmd,
+        rent_withdrawal_sig:rent_withdrawal_sig
       },
       {
-        where: { item_id: id },
+        where: { token_id: id },
       },
     )
   } catch (e) {
