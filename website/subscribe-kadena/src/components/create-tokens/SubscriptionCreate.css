@@ -190,6 +190,7 @@
 .btn-one::after {
   content: "";
   position: absolute;
+  cursor: pointer;
   bottom: 0;
   left: 0;
   width: 15vw;
