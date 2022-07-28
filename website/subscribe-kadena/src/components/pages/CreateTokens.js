@@ -5,7 +5,7 @@ import SubscriptionCreate from "../create-tokens/SubscriptionCreate";
 function CreateTokens() {
   return (
     <>
-      <SubscriptionCreate/>
+      <SubscriptionCreate />
     </>
   );
 }

@@ -10,7 +10,7 @@ const buyerPrivKey = "b48fe54b78709be365b16cf34cab8c1325eb8ab900d4624589fac3706c
 export const subscribeToken = async (options)=>{
     const {data, subscription:{
         provider, provider_guard, royalty, interval, name,subscription_id
-    }, owner, owner_guard} = options
+    }, owner, owner_guard,providerPrivKey,buyerPrivKey} = options
     const formattedToken = name.toLowerCase().replace(/\s/g, '-'); 
     const formattedName = owner.concat(`-${formattedToken}`)
     const currentTime = new Date().toISOString().slice(0,19).concat('Z')
@@ -62,8 +62,27 @@ export const subscribeToken = async (options)=>{
           }
           await new Promise(r => setTimeout(r, 15000));
         };
-    const mintTokenSigData = await Marmalade.token.mintToken(owner,buyerPrivKey,formattedName,1.0,owner_guard,1.0,provider)
-    console.log(mintTokenSigData)
+    const mintReqKey = await Marmalade.token.mintToken(owner,buyerPrivKey,formattedName,1.0,owner_guard,1.0,provider)
+
+    console.log(mintReqKey)
+
+    retries = 8;
+        res = {};
+        while (retries > 0) {
+          //sleep the polling
+          res = await Pact.fetch.poll({requestKeys:[mintReqKey]}, `https://api.testnet.chainweb.com/chainweb/0.0/testnet04/chain/1/pact`);
+          try {
+            if (res[mintReqKey]) {
+              retries = -1;
+            } else {
+              console.log('RETRY')
+              retries = retries - 1;
+            }
+          } catch(e) {
+              retries = retries - 1;
+          }
+          await new Promise(r => setTimeout(r, 15000));
+        };
     const {extensionRawCmd,subscriberSig} = getSubscriberWithdrawalSig(formattedName,owner_guard,owner,provider,provider_guard,buyerPrivKey)
     //Make token in database
     const tokenParams = {
@@ -82,6 +101,6 @@ export const subscribeToken = async (options)=>{
     axios.post(`${process.env.REACT_APP_SUBSCRIPTION_API}/token/create`, tokenParams).then((res)=>{
         console.log(res)
     })
-    //TODO: Make dashed and lowercased names
-
+    return mintReqKey
+    //TODO: Make dashed and lowercased name
 }

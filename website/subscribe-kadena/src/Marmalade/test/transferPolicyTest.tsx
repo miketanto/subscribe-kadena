@@ -39,6 +39,11 @@ export const transferableSubscribePolicy:Policy = {
     schema:transferableSubscribeSchema
 }
 
+const providerSubzeroKeyset = {
+    "pred":"keys-all",
+    "keys":[""]
+}
+
 const providerKeyset = {
     "pred":"keys-all",
     "keys":["9c5270f49edcf594dfe130db95355ed8414ba6ec706e793897b980e24af6bfb9"]
