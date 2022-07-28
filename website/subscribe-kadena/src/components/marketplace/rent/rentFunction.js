@@ -52,6 +52,7 @@ export const rentToken = async (options)=>{
     }).then((res)=>{
         console.log(res)
     })
+    return txReqKey
     //TODO: Make dashed and lowercased names
 
 }

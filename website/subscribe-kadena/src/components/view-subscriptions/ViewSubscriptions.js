@@ -4,6 +4,7 @@ import "../../App.css";
 import CardItem from "./SubscriptionCard";
 import { offerRentToken } from "./listRental";
 import "./ViewSubscriptions.css";
+import Loader from "../Loader";
 import Particles from "react-tsparticles";
 
 const token = [
@@ -24,11 +25,15 @@ function ViewSubscriptions() {
   const [tokens, setTokens] = useState([]);
   const [selectedToken, setSelectedToken] = useState();
   const [formInput, updateFormInput] = useState({
-    rent_interval: "",
-    renter_subsidy: "",
-    expiry_block: "",
-    rent_price: "",
-  });
+    rent_interval:"",
+    renter_subsidy:"",
+    expiry_block:"",
+    rent_price:""
+  })
+  const [loading, setLoading] = useState(false)
+  const [loadingModal, showLoadingModal] = useState(false)
+  const [reqKey, setReqKey] = useState("")
+
   useEffect(() => {
     axios
       .get(`${process.env.REACT_APP_SUBSCRIPTION_API}/token/get`)
@@ -47,13 +52,13 @@ function ViewSubscriptions() {
       <h1>Your Subscriptions</h1>
       <div className="subscriptions_container">
         <div className="subscriptions_wrapper">
-          {/*tokens.map((token, key) => ( */}
+          {tokens.map((token, key) => ( 
           <CardItem
-            name="Maserati"
-            expiry="30 months"
+            name={token.token_id}
+            expiry={token.expiry_time}
             onClick={() => setSelectedToken(token)}
           />
-          {/*}))}*/}
+          ))}
         </div>
       </div>
       {selectedToken && (
@@ -153,18 +158,27 @@ function ViewSubscriptions() {
                 </div>
               </div>
             </div>
-            <button
-              className="btn-main lead mb-5"
-              onClick={() => {
-                console.log("Rent");
-                offerRentToken({ ...formInput, token: selectedToken });
-              }}
-            >
-              Rent Out
-            </button>
-          </div>
         </div>
-      )}
+        <button
+          className="btn-main lead mb-5"
+          onClick={() => {
+            console.log("Rent")
+            setLoading(true)
+            showLoadingModal(true)
+            offerRentToken({...formInput, token:selectedToken}).then((res)=>{
+              setReqKey(res)
+              setLoading(false)
+            })
+          }}
+        >
+          Rent Out
+        </button>
+      </div>)}
+    {
+      loadingModal&&(<Loader loading = {loading} showLoadingModal = {showLoadingModal}
+      loadingMessage = {"Listing Rental..."} finishedMessage = {<a href={`https://explorer.chainweb.com/testnet/tx/${reqKey}`}>View Transaction</a>}
+      />)
+    }
     </div>
   );
 }

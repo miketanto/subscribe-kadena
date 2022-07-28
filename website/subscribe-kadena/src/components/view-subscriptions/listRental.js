@@ -42,5 +42,6 @@ export const offerRentToken = async (options)=>{
       }}).then((res)=>{
         console.log(res)
     })
+    return txReqKey
       //Make token in database
 }

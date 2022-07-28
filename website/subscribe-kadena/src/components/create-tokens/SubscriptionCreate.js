@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./SubscriptionCreate.css";
+import {BallTriangle} from 'react-loader-spinner'
+import Loader from "../Loader";
 
 function SubscriptionCreate() {
   const [formInput, updateFormInput] = useState({
@@ -9,11 +11,18 @@ function SubscriptionCreate() {
     provider_guard: "",
     description: "",
   });
-
+  const [loading, setLoading] = useState(false)
+  const [loadingModal, showLoadingModal] = useState(false)
   const createSubscription = async (options) => {
+    showLoadingModal(true)
+    setLoading(true)
+    const parsedProviderGuard = {
+      "keys":[formInput.provider_guard],
+      "pred":"keys-all"
+    }
     const parsedOptions = {
       ...options,
-      provider_guard: JSON.parse(options.provider_guard),
+      provider_guard: parsedProviderGuard,
     };
     try {
       axios
@@ -23,6 +32,7 @@ function SubscriptionCreate() {
         )
         .then((res) => {
           console.log(res);
+          setLoading(false);
         });
     } catch (e) {
       console.log(e);
@@ -193,6 +203,10 @@ function SubscriptionCreate() {
           </div>
         </div>
       </section>
+      {
+        loadingModal&&(<Loader loading={loading} showLoadingModal = {showLoadingModal} 
+          loadingMessage = {"Creating Subscription..."} finishedMessage={"Subscription Created"}/>)
+      }
     </div>
   );
 }

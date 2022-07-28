@@ -9,6 +9,7 @@ import SignUp from "./components/pages/SignUp";
 import ViewSubscriptions from "./components/pages/ViewSubscriptionsPage";
 import Marketplace from "./components/pages/Marketplace";
 import RentMarketplace from "./components/pages/RentMarketplacePage";
+import WithdrawSubscription from "./components/view-subscriptions/WithdrawSubscription";
 import { WalletContext } from "./components/context/WalletContext";
 import Particles from "react-tsparticles";
 
@@ -62,6 +63,7 @@ function App() {
                 path="/view-subscriptions"
                 element={<ViewSubscriptions />}
               />
+              <Route path="/withdraw-subscription" element={<WithdrawSubscription />} />
               <Route path="/buy-marketplace" element={<Marketplace />} />
               <Route path="/rent-marketplace" element={<RentMarketplace />} />
             </Routes>

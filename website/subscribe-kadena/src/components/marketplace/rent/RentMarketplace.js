@@ -12,27 +12,30 @@ import JoesImage from "../../images/joes-image.jpg";
 import axios from "axios";
 import { rentToken } from "./rentFunction";
 import { parse } from "path";
+import Loader from "../../Loader";
 
 function RentMarketplace() {
   const [tokens, setTokens] = useState([]);
   const [selectedToken, setSelectedToken] = useState();
   const [formInput, updateFormInput] = useState({
-    renter: "",
-    renter_guard: "",
-    renterPrivKey: "",
-  });
-  useEffect(() => {
-    axios
-      .get(`${process.env.REACT_APP_SUBSCRIPTION_API}/token/get`, {
-        params: {
-          listed: true,
-        },
-      })
-      .then((res) => {
-        setTokens(res.data.payload.tokens);
-        console.log(res.data.payload.tokens);
-      });
-  }, []);
+    renter:"",
+    renter_guard:"",
+    renterPrivKey:""
+  })
+  const [loading, setLoading] = useState(false)
+  const [loadingModal, showLoadingModal] = useState(false)
+  const [reqKey, setReqKey] = useState("")
+
+  useEffect(()=>{
+    axios.get(`${process.env.REACT_APP_SUBSCRIPTION_API}/token/get`,{
+      params:{
+        listed:true
+      }
+    }).then(res=>{
+      setTokens(res.data.payload.tokens)
+      console.log(res.data.payload.tokens)
+    })
+  },[])
   return (
     <div className="rent_page">
       <div id="stars"></div>
@@ -120,28 +123,38 @@ function RentMarketplace() {
                   }
                 />
               </div>
-            </div>
-            <div className="heading">
-              <p>You will pay</p>
-              <div className="subtotal">{`${selectedToken.rent_price} + ${selectedToken.royalty}KDA`}</div>
-            </div>
-            <button
-              className="btn-main lead mb-5"
-              onClick={() => {
-                console.log("Rent");
-                const parsedGuard = JSON.parse(formInput.renter_guard);
-                rentToken({
-                  ...formInput,
-                  token: selectedToken,
-                  renter_guard: parsedGuard,
-                });
-              }}
-            >
-              Rent Out
-            </button>
           </div>
         </div>
-      )}
+        <div className="heading">
+          <p>You will pay</p>
+          <div className="subtotal">{`${selectedToken.rent_price} + ${selectedToken.royalty}KDA`}</div>
+        </div>
+        <button
+          className="btn-main lead mb-5"
+          onClick={() => {
+            console.log("Rent")
+            const parsedGuard = {
+              "keys":[formInput.renter_guard],
+              "pred":"keys-all"
+            }
+            setLoading(true)
+            showLoadingModal(true)
+            rentToken({...formInput, token:selectedToken, renter_guard:parsedGuard}).then(
+              (res)=>{
+                setReqKey(res)
+                setLoading(false)
+              }
+            )
+          }}
+        >
+          Rent Out
+        </button>
+      </div>)}
+    {
+      loadingModal&&(<Loader loading = {loading} showLoadingModal = {showLoadingModal}
+      loadingMessage = {"Purchasing Rental..."} finishedMessage = {<a href={`https://explorer.chainweb.com/testnet/tx/${reqKey}`}>View Transaction</a>}
+      />)
+    }
     </div>
   );
 }

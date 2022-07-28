@@ -808,3 +808,31 @@
     width: 100%;
   }
 }
+
+.loadModal{
+  display:flex;
+  position:fixed;
+  align-items: center;
+  justify-content: space-evenly;
+  height:30vh;
+  width:20vw;
+  top:35vh;
+  background-color: white;
+  z-index:5;
+  border-radius: 10px;
+  flex-direction:column;
+}
+
+.loadTitle{
+  font-size:large;
+  font-weight:700;
+}
+
+.closeBtn{
+  height:7vh;
+  width:10vw;
+  background-color: rgb(126, 175, 53);
+  color:black;
+  border:transparent;
+  border-radius: 10px;
+}
