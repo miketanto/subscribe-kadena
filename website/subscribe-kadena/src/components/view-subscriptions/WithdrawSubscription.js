@@ -104,7 +104,7 @@ function WithdrawSubscription() {
                 "keys":[formInput.provider_guard],
                 "pred":"keys-all"
             }
-            withdrawToken(selectedToken.tx_raw_cmd,selectedToken.withdrawal_sig,parsedGuard, formInput.providerPrivKey).then((res)=>{
+            withdrawToken(selectedToken.rent_tx_raw_cmd,selectedToken.rent_withdrawal_sig,parsedGuard, formInput.providerPrivKey).then((res)=>{
               setReqKey(res)
               setLoading(false)
             })
@@ -116,7 +116,7 @@ function WithdrawSubscription() {
     </div>)}
     {
       loadingModal&&(<Loader loading = {loading} showLoadingModal = {showLoadingModal}
-      loadingMessage = {"Withdrawing Subscription..."} finishedMessage = {<a href={`https://explorer.chainweb.com/testnet/tx/${reqKey}`}>View Transaction</a>}
+      loadingMessage = {"Withdrawing Rental..."} finishedMessage = {<a href={`https://explorer.chainweb.com/testnet/tx/${reqKey}`}>View Transaction</a>}
       />)
     }
     </div>

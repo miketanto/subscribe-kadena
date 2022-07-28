@@ -40,7 +40,6 @@ function MarketplaceCompanies() {
       <h1 className="subscription-header">Subscription Token Marketplace</h1>
       <div className="company_cards_container">
         <div className="company_cards_wrapper">
-          <ul className="company_cards_items">
           {
               subscriptions.map((subscription)=>{
                 return(<CompanyCard 
@@ -53,7 +52,6 @@ function MarketplaceCompanies() {
                    />)
               })
             }
-          </ul>
         </div>
       </div>
       {selectedSub && 
