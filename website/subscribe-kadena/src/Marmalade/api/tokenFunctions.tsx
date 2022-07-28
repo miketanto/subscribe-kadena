@@ -216,6 +216,23 @@ export const createToken = async (
 
     const extend = await fetchSendPreparedCmd(preparedCmd,`https://api.testnet.chainweb.com/chainweb/0.0/testnet04/chain/1/pact`)
     const reqKey = extend.requestKeys[0]
+    let retries = 8;
+    let res:any = {};
+    while (retries > 0) {
+      //sleep the polling
+      res = await Pact.fetch.poll({requestKeys:[reqKey]}, `https://api.testnet.chainweb.com/chainweb/0.0/testnet04/chain/1/pact`);
+      try {
+        if (res[reqKey]) {
+          retries = -1;
+        } else {
+          console.log('RETRY')
+          retries = retries - 1;
+        }
+      } catch(e) {
+          retries = retries - 1;
+      }
+      await new Promise(r => setTimeout(r, 15000));
+    };
     return reqKey
     }
 

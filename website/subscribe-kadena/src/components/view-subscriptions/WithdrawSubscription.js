@@ -3,8 +3,9 @@ import React, { useEffect, useState } from "react";
 import "../../App.css";
 import CardItem from "./SubscriptionCard";
 import { offerRentToken } from "./listRental";
-import "./ViewSubscriptions.css";
+import "./WithdrawSubscription.css";
 import Loader from "../Loader";
+import { withdrawToken } from "../../Marmalade/api/tokenFunctions";
 
 const data = [
   { name: "Netflix", expiry: "1 month" },
@@ -15,14 +16,12 @@ const data = [
   { name: "Lion", expiry: "1 month" },
 ];
 
-function ViewSubscriptions() {
+function WithdrawSubscription() {
   const [tokens, setTokens] = useState([]);
   const [selectedToken, setSelectedToken] = useState()
   const [formInput, updateFormInput] = useState({
-    rent_interval:"",
-    renter_subsidy:"",
-    expiry_block:"",
-    rent_price:""
+    provider_guard:"",
+    providerPrivKey:"",
   })
   const [loading, setLoading] = useState(false)
   const [loadingModal, showLoadingModal] = useState(false)
@@ -63,7 +62,7 @@ function ViewSubscriptions() {
           <h3>Checkout</h3>
         </div>
         <p>
-          You are about to rent out a{" "}
+          You are about to withdraw a{" "}
           <span className="bold">
             {selectedToken.token_id}
           </span>
@@ -72,52 +71,26 @@ function ViewSubscriptions() {
         <div className="detailcheckout mt-4">
           <div className="listcheckout">
             <h6>
-              Rent Interval
+                Provider Guard
             </h6>
             <input
-              type="number"
-              name="buy_now_qty"
-              id="buy_now_qty"
-              className="form-control"
-              placeholder="Days"
-              onChange={(e) =>
-                updateFormInput({ ...formInput, rent_interval: e.target.value })
-              }
-            />
-
-            <h6>
-              Renter Subsidy
-            </h6>
-            <input
-              type="number"
+              type="text"
               name="buy_now_qty"
               id="buy_now_qty"
               className="form-control"
               placeholder="KDA"
-              onChange = {(e)=>updateFormInput({...formInput, renter_subsidy : e.target.value})}
+              onChange = {(e)=>updateFormInput({...formInput, provider_guard : e.target.value})}
             />
-
             <h6>
-              Rent Price
+                Provider Private Key
             </h6>
             <input
-              type="number"
+              type="text"
               name="buy_now_qty"
               id="buy_now_qty"
               className="form-control"
               placeholder="KDA"
-              onChange = {(e)=>updateFormInput({...formInput, rent_price : e.target.value})}
-            />
-            <h6>
-              Expiry Block
-            </h6>
-            <input
-              type="number"
-              name="buy_now_qty"
-              id="buy_now_qty"
-              className="form-control"
-              placeholder="KDA"
-              onChange = {(e)=>updateFormInput({...formInput, expiry_block : e.target.value})}
+              onChange = {(e)=>updateFormInput({...formInput, providerPrivKey : e.target.value})}
             />
           </div>
         </div>
@@ -127,7 +100,11 @@ function ViewSubscriptions() {
             console.log("Rent")
             setLoading(true)
             showLoadingModal(true)
-            offerRentToken({...formInput, token:selectedToken}).then((res)=>{
+            const parsedGuard = {
+                "keys":[formInput.provider_guard],
+                "pred":"keys-all"
+            }
+            withdrawToken(selectedToken.tx_raw_cmd,selectedToken.withdrawal_sig,parsedGuard, formInput.providerPrivKey).then((res)=>{
               setReqKey(res)
               setLoading(false)
             })
@@ -139,11 +116,11 @@ function ViewSubscriptions() {
     </div>)}
     {
       loadingModal&&(<Loader loading = {loading} showLoadingModal = {showLoadingModal}
-      loadingMessage = {"Listing Rental..."} finishedMessage = {<a href={`https://explorer.chainweb.com/testnet/tx/${reqKey}`}>View Transaction</a>}
+      loadingMessage = {"Withdrawing Subscription..."} finishedMessage = {<a href={`https://explorer.chainweb.com/testnet/tx/${reqKey}`}>View Transaction</a>}
       />)
     }
     </div>
   );
 }
 
-export default ViewSubscriptions;
+export default WithdrawSubscription;

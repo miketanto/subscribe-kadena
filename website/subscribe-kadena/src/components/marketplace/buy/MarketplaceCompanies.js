@@ -7,16 +7,26 @@ import axios from 'axios'
 
 // image imports
 import NetflixImage from "../../images/netflix-image.png";
+import Loader from "../../Loader";
+import { Link } from "react-router-dom";
 
 
 function MarketplaceCompanies() {
   const [subscriptions, setSubscriptions] = useState([])
   const [selectedSub, setSelectedSub] = useState()
+  const [loading, setLoading] = useState(false)
+  const [loadingModal, showLoadingModal] = useState(false)
+  const [subscriptionReqKey, setSubscriptionReqKey] = useState("")
   const {wallet} = useContext(WalletContext)
   const [formInput, updateFormInput] = useState({
     owner:"",
     owner_guard:"",
-    data:""
+    data:{
+      "assetUrl": "https://www.netflix.com",
+      "creationDate": "2022-07-11",
+      "title": "Mike's Netflix Subscription",
+      "providerName": "Netflix Co.ltd"
+    }
   })
   //Refactor to custom useSubscriptions hook
   useEffect(()=>{
@@ -94,16 +104,27 @@ function MarketplaceCompanies() {
             />
 
             <h6>
-              Data
+              Owner Private Key
             </h6>
             <input
               type="text"
               name="buy_now_qty"
               id="buy_now_qty"
               className="form-control"
-              onChange={(e) =>
-                updateFormInput({ ...formInput, data: e.target.value })
-              }
+              placeholder="Owner Guard"
+              onChange = {(e)=>updateFormInput({...formInput, buyerPrivKey : e.target.value})}
+            />
+
+            <h6>
+              Provider Private Key
+            </h6>
+            <input
+              type="text"
+              name="buy_now_qty"
+              id="buy_now_qty"
+              className="form-control"
+              placeholder="Owner Guard"
+              onChange = {(e)=>updateFormInput({...formInput, providerPrivKey : e.target.value})}
             />
           </div>
         </div>
@@ -114,16 +135,29 @@ function MarketplaceCompanies() {
         <button
           className="btn-main lead mb-5"
           onClick={() => {
-            const parsedData = JSON.parse(formInput.data)
-            const parsedOwnerGuard = (typeof(formInput.owner_guard) === Object)? formInput.owner_guard : JSON.parse(formInput.owner_guard)
-            subscribeToken({...formInput,owner_guard:parsedOwnerGuard, data:parsedData,subscription:selectedSub})
-            .then(res=>console.log(res))}
+            const parsedOwnerGuard = {
+              "keys":[formInput.owner_guard],
+              "pred":"keys-all"
+            }
+            showLoadingModal(true)
+            setLoading(true)
+            subscribeToken({...formInput,owner_guard:parsedOwnerGuard,subscription:selectedSub})
+            .then(res=>{
+              console.log(res)
+              setSubscriptionReqKey(res)
+              setLoading(false)
+            })}
           }
         >
           Checkout
         </button>
       </div>
     </div>)}
+    {
+      loadingModal&&(<Loader loading = {loading} showLoadingModal = {showLoadingModal}
+      loadingMessage = {"Subscribing..."} finishedMessage = {<a href={`https://explorer.chainweb.com/testnet/tx/${subscriptionReqKey}`}>View Transaction</a>}
+      />)
+    }
     </div>
   );
 }

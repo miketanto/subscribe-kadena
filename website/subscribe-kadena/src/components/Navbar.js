@@ -91,7 +91,15 @@ function Navbar() {
                 Rent Marketplace
               </Link>
             </li>
-              <WalletStatus/>
+            <li className="nav-item">
+              <Link
+                to="/withdraw-subscription"
+                className="nav-links"
+                onClick={closeMobileMenu}
+              >
+                Withdraw Subscription
+              </Link>
+            </li>
           </ul>
         </div>
       </nav>
