@@ -70,7 +70,7 @@ function Navbar() {
                 className="nav-links"
                 onClick={closeMobileMenu}
               >
-                View Subscriptions
+                Rent Out Subscriptions
               </Link>
             </li>
             <li className="nav-item">

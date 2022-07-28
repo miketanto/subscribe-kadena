@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import "../../App.css";
 import CardItem from "./SubscriptionCard";
 import { offerRentToken } from "./listRental";
-import "./WithdrawSubscription.css";
+import "./ViewSubscriptions.css";
 import Loader from "../Loader";
 import { withdrawToken } from "../../Marmalade/api/tokenFunctions";
 
@@ -38,6 +38,9 @@ function WithdrawSubscription() {
 
   return (
     <div className="view_susbcriptions_page">
+      <div id="stars"></div>
+      <div id="stars2"></div>
+      <div id="stars3"></div>
       <h1>Your Subscriptions</h1>
       <div className="subscriptions_container">
         <div className="subscriptions_wrapper">
