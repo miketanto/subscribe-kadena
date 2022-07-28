@@ -9,6 +9,7 @@ function SubscriptionCreate() {
     provider_guard: "",
     description: "",
   });
+
   const createSubscription = async (options) => {
     const parsedOptions = {
       ...options,
@@ -29,6 +30,9 @@ function SubscriptionCreate() {
   };
   return (
     <div className="create_page">
+      <div id="stars"></div>
+      <div id="stars2"></div>
+      <div id="stars3"></div>
       <section
         className="jumbotron breadcumb no-bg"
         style={{ backgroundImage: `url(${"./img/background/subheader.jpg"})` }}
@@ -175,13 +179,11 @@ function SubscriptionCreate() {
                 </div>
                 <div></div>
                 <div className="btn_wrapper">
-                  <div className="btn-one"
-                  onClick={() => createSubscription(formInput)}>
-                    <span
-                      type="button"
-                      id="submit"
-                      className="create_button"
-                    >
+                  <div
+                    className="btn-one"
+                    onClick={() => createSubscription(formInput)}
+                  >
+                    <span type="button" id="submit" className="create_button">
                       Create NFT
                     </span>
                   </div>
