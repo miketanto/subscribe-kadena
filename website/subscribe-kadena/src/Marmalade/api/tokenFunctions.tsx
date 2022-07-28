@@ -113,12 +113,50 @@ export const mintToken = async (
     return reqKey
   }
 
+  const mkReq = function(cmd:any) {
+    return {
+      headers: {
+        "Content-Type": "application/json"
+      },
+      method: "POST",
+      body: JSON.stringify(cmd)
+    };
+  }
+
+export const mintTokenQuickSign = async (
+    account:string = "",accountPubKey:string, tokenId:string, amount:Number, keyset:Guard|string, tokenMintPrice:Number, providerAccount:string
+  ) => {
+    const mintRawCmd = getRawCmd(
+      [{
+        publicKey: accountPubKey, //Signing PubKey,
+        clist: [
+          {
+            name: `coin.GAS`,
+            args: []
+          }
+        ]
+      }],
+      tokenId, `(${hftAPI.contractAddress}.mint "${tokenId}" "${account}" (read-keyset 'ks) (read-decimal 'amount))`,
+      {ks: keyset, amount, "token-mint-price": tokenMintPrice ,"provider-account":providerAccount},
+      Pact.lang.mkMeta(account as string, "1" , 0.000001, 100000, creationTime(), 28800),
+      "testnet04" as any, []
+    )
+      console.log(mintRawCmd)
+      const sigList1 = {[accountPubKey]: null}
+      const commandSigData1 = { "cmd":mintRawCmd, "sigs": sigList1 }
+      const req = { "reqs": [commandSigData1] }
+
+      fetch('http://127.0.0.1:9467/v1/quickSign', mkReq(req))
+      .then((res) => res.json())
+      .then((res:any) => res.results.forEach((elem:any) => console.log(elem.sigs)))
+    }
+
 export const createToken = async (
     precision:Number,
     id:String,
     policy:Policy,
     policyParams:Object,
-    accountPrivKey:String,
+    accountPrivKey:string,
     account:String,
   ) => {
       const accountPubKey =  (Pact.crypto.restoreKeyPairFromSecretKey(accountPrivKey) as any).publicKey
@@ -148,6 +186,55 @@ export const createToken = async (
       console.log(reqKey)
       return reqKey
     }
+
+    export const createTokenQuickSign = async (
+      precision:Number,
+      id:String,
+      policy:Policy,
+      policyParams:Object,
+      accountPubKey:string,
+      account:String,
+    ) => {
+      const createRawCmd = getRawCmd(
+        [{
+          publicKey: accountPubKey, //Signing PubKey,
+          clist: [
+            {
+              name: `coin.GAS`,
+              args: []
+            }
+          ]
+        }],
+        "random nonce", `(${hftAPI.contractAddress}.create-token "${id}" ${precision} (read-msg 'manifest) ${policy.api.contractAddress})`,
+        policyParams,
+        Pact.lang.mkMeta(account as string, "1" , 0.000001, 100000, creationTime(), 28800),
+        "testnet04" as any, []
+      )
+      const sigList1 = {[accountPubKey]: null}
+      const commandSigData1 = { "cmd":createRawCmd, "sigs": sigList1 }
+      const req = { "reqs": [commandSigData1] }
+
+      fetch('http://127.0.0.1:9467/v1/quickSign', mkReq(req))
+      .then((res) => res.json())
+      .then(async (res:any) => {
+        const rawSig = res.results[0].sigs
+        const pubKey = Object.keys(rawSig)[0]
+        const txHash = Pact.crypto.hash(createRawCmd)
+        const formattedSig = {
+          hash:txHash,
+          pubKey: pubKey,
+          sig : rawSig[pubKey]
+        }
+        const preparedCmd = {
+          hash:txHash,
+          sigs:[formattedSig],
+          cmd:createRawCmd
+        }
+        const create = await fetchSendPreparedCmd(preparedCmd,`https://api.testnet.chainweb.com/chainweb/0.0/testnet04/chain/1/pact`)
+        console.log(create)
+        console.log(formattedSig)
+      })
+      }
 
     export const withdrawTokenSignature = (wallet:Wallet,providerAccount:string = "", subscriberAccount:string = "", tokenId:string, providerKeyset:Guard|string, amount:string):SigExecData=>{
       const {accountName, signingKey, networkId, gasPrice, gasLimit} = wallet;

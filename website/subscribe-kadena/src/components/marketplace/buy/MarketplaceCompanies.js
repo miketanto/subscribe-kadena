@@ -7,6 +7,7 @@ import axios from 'axios'
 
 // image imports
 import NetflixImage from "../../images/netflix-image.png";
+import { mintTokenQuickSign } from "../../../Marmalade/api/tokenFunctions";
 
 
 function MarketplaceCompanies() {
@@ -116,8 +117,11 @@ function MarketplaceCompanies() {
           onClick={() => {
             const parsedData = JSON.parse(formInput.data)
             const parsedOwnerGuard = (typeof(formInput.owner_guard) === Object)? formInput.owner_guard : JSON.parse(formInput.owner_guard)
-            subscribeToken({...formInput,owner_guard:parsedOwnerGuard, data:parsedData,subscription:selectedSub})
-            .then(res=>console.log(res))}
+            /*mintTokenQuickSign(formInput.owner,parsedOwnerGuard.keys[0],selectedSub.name,1.0,parsedOwnerGuard,selectedSub.price,selectedSub.provider)*/
+           subscribeToken({...formInput,owner_guard:parsedOwnerGuard, data:parsedData,subscription:selectedSub})
+          .then(res=>console.log(res))
+        
+        }
           }
         >
           Checkout
