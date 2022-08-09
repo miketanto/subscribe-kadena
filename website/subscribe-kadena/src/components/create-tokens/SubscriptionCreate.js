@@ -3,6 +3,7 @@ import axios from "axios";
 import "./SubscriptionCreate.css";
 import {BallTriangle} from 'react-loader-spinner'
 import Loader from "../Loader";
+import { offerMarmaCoinStringified, testBuyTokenSignature, testOfferTokenSignature, testWithdrawTokenSignature } from "../../Marmalade/test/transferPolicyTest";
 
 function SubscriptionCreate() {
   const [formInput, updateFormInput] = useState({
@@ -191,7 +192,9 @@ function SubscriptionCreate() {
                 <div className="btn_wrapper">
                   <div
                     className="btn-one"
-                    onClick={() => createSubscription(formInput)}
+                        onClick={() => {
+                          createSubscription(formInput)
+                      }}
                   >
                     <span type="button" id="submit" className="create_button">
                       Create NFT

@@ -660,6 +660,7 @@ export const fetchSendPreparedCmd = async function(preparedCmd, apiHost){
                               cmd.envData, cmd.meta, cmd.networkId, cmd.coSigs)
      }
    })
+   console.log(sendCmds)
    return fetch(`${apiHost}/api/v1/send`, mkReq(mkPublicSend(sendCmds)));
  };
  

@@ -3,9 +3,6 @@
   height: 100vh;
   width: 100vw;
   position: absolute;
-  width: 100%;
-  height: 100%;
-  background-position: 50% 50%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -595,7 +592,7 @@ h1 {
   display: flex;
   width: 10vw;
   height: 10vw;
-  background: #50c878;
+  background: #491066;
   /*url("../images/nft-image.jpg") center center/cover no-repeat;*/
   border-radius: 50%;
   transition: transform 0.2s; /* Animation */
@@ -630,7 +627,7 @@ h1 {
   width: 11vw;
   height: 2vw;
   font-family: "Serif";
-  color: white;
+  color: #f5f5dc;
 }
 
 .subscription_expiry {
@@ -639,7 +636,7 @@ h1 {
   display: flex;
   justify-content: end;
   font-family: "Serif";
-  color: white;
+  color: #f5f5dc;
 }
 
 /* container for all the tokens */
@@ -692,13 +689,16 @@ h1 {
   font-size: 1.2rem;
   font-weight: bold;
   position: absolute;
+  background-color: transparent;
   right: 1.1vw;
   top: 1.1vw;
   z-index: 9991;
   color: black;
   border-radius: 50px;
+  color: #f5f5dc;
   width: 2vw;
   height: 2vw;
+  border-color: #f5f5dc;
   opacity: 1;
   text-align: center;
   display: flex;
@@ -711,6 +711,7 @@ h1 {
   margin-left: 0.01vw;
   text-align: center;
   font-size: 1.3vw;
+  border-color: #f5f5dc;
 }
 
 /* main popup style with background */
@@ -799,7 +800,10 @@ h1 {
   width: 30vw;
   height: 2vw;
   font-size: 1vw;
-  color: #fff;
+  color: #f5f5dc;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .checkout .maincheckout .heading .subtotal {
@@ -848,12 +852,12 @@ h1 {
   margin-bottom: 15px !important;
 }
 .checkout .maincheckout .bold {
-  color: black;
+  color: f5f5dc;
   font-weight: bold;
 }
 
 ::placeholder {
-  color: white;
+  color: #f5f5dc;
   opacity: 0.3;
 }
 
@@ -863,7 +867,7 @@ h1 {
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: start;
+  justify-content: center;
 }
 
 .textbox-description-wrapper {
@@ -873,10 +877,10 @@ h1 {
   text-align: center;
   align-items: center;
   justify-content: center;
-  font-size: 0.8vw;
+  font-size: 1.2vw;
   font-weight: bold;
   font-family: "Trebuchet MS";
-  color: white;
+  color: #f5f5dc;
   overflow-wrap: break-word;
 }
 

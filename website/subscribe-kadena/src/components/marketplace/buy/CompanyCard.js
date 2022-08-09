@@ -18,13 +18,16 @@ function CompanyCard(props) {
             />
           </figure>
           <div className="company_cards_provider_info_wrapper">
+           
+
+            <div className="company_cards_name_wrapper">{props.name}</div>
+
+
             <div className="company_cards_sale_info_wrapper">
               <div className="company_cards_price">Price: {props.price}</div>
               <div className="company_cards_recur">Period: {props.period}</div>
             </div>
-
-            <div className="company_cards_name_wrapper">{props.name}</div>
-
+            
             <div className="company_cards_buttons_wrapper">
               <Button
                 className="buy_button_style"

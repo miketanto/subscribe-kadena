@@ -615,8 +615,8 @@ h1 {
   flex: 1;
   margin: 0 1rem;
   border-radius: 10%;
-  width: 22vw;
-  max-width:22vw;
+  width: 30vw;
+  max-width:30vw;
   height: 35vh;
   min-height:35vh;
 }
@@ -624,6 +624,8 @@ h1 {
 .company_cards_item_link {
   display: flex;
   flex-flow: column;
+  align-items: center;
+  justify-content:space-evenly;
   width: 100%;
   box-shadow: 0 6px 20px rgba(56, 125, 255, 5);
   -webkit-filter: drop-shadow(0 6px 20px rgba(56, 125, 255, 0.017));
@@ -686,6 +688,8 @@ h1 {
 .company_cards_provider_info_wrapper {
   width: 30vw;
   height: 6vw;
+  padding-left:2vw;
+  padding-right:2vw;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -695,7 +699,7 @@ h1 {
 .company_cards_name_wrapper {
   color: #f5f5dc;
   width: 10vw;
-  font-size: 3vw;
+  font-size: large;
   display: flex;
   justify-content: center;
   align-items: center;

@@ -120,16 +120,16 @@ export const testBuyToken = ()=>{
     const buy = buyToken("mike-renter",renterKeyset,renterPrivKey,"mike-subscriber","mike-provider", 1.0, 2383896,"EjQkrOd8rk-GCC765yrfAFjrOmkyAbpm0Ick9HtcmFI",
     "mike-wework-subscription",1.0)
 }
-/*
-export const testOfferToken = ()=>{
-    const offerTokenSigData = Marmalade.transaction.saleTokenSignatureAndObject(testWallet,'mike.tanto',1,2,'mike.tanto',testKeyset,"MKOCOIN",2299000,"coin")
+
+export const testOfferTokenSignature = ()=>{
+    const offerTokenSigData = Marmalade.transaction.saleTokenSignatureAndObject(providerWallet,'mike.tanto',1,2,'mike.tanto',providerKeyset,"MKOCOIN",2299000,"coin")
     console.log(offerTokenSigData)
 }
-
+/*
 export const testOfferTokenListen = async (txReqKey:string)=>{
     const res = await Pact.fetch.poll({requestKeys:[txReqKey]}, host);
     return res
-}
+}*/
 
 
 const saleObj = {"amount": 1,
@@ -140,15 +140,15 @@ const saleObj = {"amount": 1,
 "timeout": 2299000,
 "tokenId": "MKOCOIN"}
 
-export const testBuyToken = ()=>{
-   const buyTokenSignature = Marmalade.transaction.buyTokenSignature(testBuyerWallet, "bcEMPxezmsW2R0KMm7TkLh8PCkDf2zUFFZ_QMHdZMnI", "mike.tanto.no2", testRecipientKeyset, saleObj)
+export const testBuyTokenSignature = ()=>{
+   const buyTokenSignature = Marmalade.transaction.buyTokenSignature(buyerWallet, "bcEMPxezmsW2R0KMm7TkLh8PCkDf2zUFFZ_QMHdZMnI", "mike.tanto.no2", providerKeyset, saleObj)
    console.log(buyTokenSignature)
 }
 
-export const testWithdrawToken = ()=>{
-    const withdrawTokenSignature = Marmalade.transaction.withdrawTokenSignature(testWallet,"KmZddf1Kpe42dH8cjhbZVZYWc019SWI48r1fFtOvCuA",saleObj)
+export const testWithdrawTokenSignature = ()=>{
+    const withdrawTokenSignature = Marmalade.transaction.withdrawTokenSignature(providerWallet,"KmZddf1Kpe42dH8cjhbZVZYWc019SWI48r1fFtOvCuA",saleObj)
 }
-
+/*
 export const testCreateFull = async ()=>{
     const testDatumUri:TypeWrapper = await Marmalade.manifest.createUri("contract.schema","pact:schema")
     const testManifestUri:TypeWrapper = await Marmalade.manifest.createUri("image/jpeg;base64", "SOMEIMGDATA")
@@ -164,3 +164,38 @@ export const testCreateFull = async ()=>{
     const createTokenSigData = await Marmalade.token.createToken(12,"MKOCOIN2",secretKey,fixedQuotePolicy,fqpPolicyParams)
     console.log(createTokenSigData)
 }*/
+
+const marmacoinOffer = {
+    "payload":{
+      "exec":
+      {"data":
+        {"amount":1,
+        "timeout":2299000,
+        "quote": {
+          "price":2,
+          "recipient":"marma-provider",
+          "recipient-guard":{"pred":"keys-all","keys":["9c5270f49edcf594dfe130db95355ed8414ba6ec706e793897b980e24af6bfb9"]},
+          "fungible":{"refName":{"namespace":null,"name":"coin"},"refSpec":[{"namespace":null,"name":"fungible-v2"}]}
+        }
+      },
+      "code":`(marmalade.ledger.sale "MARMACOIN" "marma-provider" (read-decimal 'amount) (read-integer 'timeout))`
+    }},
+    "networkId":"testnet04",
+    "signers":
+    [{
+        "pubKey":"9c5270f49edcf594dfe130db95355ed8414ba6ec706e793897b980e24af6bfb9",
+        "clist":[
+          {"name":"marmalade.ledger.OFFER","args":[`MARMACOIN`,'marma-provider',1,{"int":2299000}]},
+          {"name":"coin.GAS","args":[]}
+        ]
+      }],
+    "meta":{"creationTime":1659628246,"ttl":28800,"gasLimit":100000,"chainId":"1","gasPrice":0.000001,"sender":"marma-provider"},
+    "nonce":"random nonce to ensure unique hash"
+    }
+
+    export const offerMarmaCoinStringified = ()=>{
+        const a = JSON.stringify(marmacoinOffer)
+        console.log(a)
+    }
+
+    

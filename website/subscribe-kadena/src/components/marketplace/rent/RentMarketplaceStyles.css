@@ -607,23 +607,33 @@ h1 {
 }
 
 /* These are for the rent cards */
+
+.rent_card_container {
+  height: 27vw;
+  width: 20vw;
+  display: flex;
+  align-items: center;
+  justify-self: center;
+}
+
 .rent_card_item {
   display: flex;
   flex: 1;
   margin: 0 1rem;
   border-radius: 10%;
-  width: 23vw;
-  height: 32vw;
+  width: 90%;
+  height: 90%;
+  cursor: pointer;
 }
 
 .rent_card_item_link {
   display: flex;
   flex-flow: column;
-  width: 20vw;
-  height: 25vw;
-  box-shadow: 0 1vw 1.5vw rgba(56, 125, 255, 5);
-  -webkit-filter: drop-shadow(0 1vw 1.5vw rgba(56, 125, 255, 0.017));
-  filter: drop-shadow(0 1vw 1.5vw rgba(56, 125, 255, 0.017));
+  width: 90%;
+  height: 90%;
+  box-shadow: 0 1vw 1.5vw rgba(56, 125, 255, 0.01);
+  -webkit-filter: drop-shadow(0 1vw 1.5vw rgba(56, 125, 255, 0.01));
+  filter: drop-shadow(0 1vw 1.5vw rgba(56, 125, 255, 0.01));
   border-radius: 0.75vw;
   text-decoration: none;
 }
@@ -685,6 +695,7 @@ h1 {
 .token_info_wrapper {
   width: 100%;
   height: 10vw;
+  padding-left: 1vw;
   background-color: #1d1471;
   display: flex;
   align-items: center;
@@ -747,7 +758,9 @@ h1 {
   font-size: 3vw;
   display: flex;
   flex-direction: column;
-  justify-content: right;
+  justify-content: center;
+  align-items: end;
+  padding-right: 0.8vw;
 }
 
 /* renter name */
@@ -784,14 +797,51 @@ h1 {
 }
 
 .withdraw_button {
-  width: 5vw;
-  height: 3vw;
   text-align: center;
   background-color: white;
   display: flex;
   justify-content: center;
   align-items: center;
   position: relative;
+
+  display: block;
+  width: 8vw;
+  height: 3vw;
+  font-size: 0.8vw;
+  font-family: sans-serif;
+  text-decoration: none;
+  color: #f5f5dc;
+  background-color: transparent;
+  border: solid #f5f5dc;
+  letter-spacing: 0.1vw;
+  text-align: center;
+  position: relative;
+  transition: all 0.35s;
+  cursor: pointer;
+}
+
+.withdraw_button span {
+  position: relative;
+  z-index: 2;
+}
+
+.withdraw_button:after {
+  position: absolute;
+  content: "";
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 100%;
+  background: #0d132c;
+  transition: all 0.35s;
+}
+
+.withdraw_button:hover {
+  color: #f5f5dc;
+}
+
+.withdraw_button:hover:after {
+  width: 100%;
 }
 
 /* for display purposes */
@@ -811,101 +861,4 @@ h1 {
   .rent_card_item {
     margin-bottom: 2rem;
   }
-}
-
-.checkout {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.6);
-  z-index: 6;
-}
-.checkout .btn-close {
-  font-size: 1.2rem;
-  font-weight: bold;
-  position: absolute;
-  right: 15px;
-  top: 15px;
-  z-index: 7;
-  color: white;
-  background: color;
-  border-radius: 50px;
-  width: 26px;
-  height: 26px;
-  line-height: 26px;
-  opacity: 1;
-  text-align: center;
-}
-.checkout .maincheckout {
-  position: relative;
-  border-radius: 8px;
-  background: white;
-  padding: 30px;
-  width: 100%;
-  max-width: 500px;
-  height: max-content;
-  margin: 30px 0 0;
-}
-.checkout .maincheckout .heading {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: 5px;
-}
-.checkout .maincheckout .heading p {
-  margin-bottom: 0;
-  font-size: 15px;
-  font-weight: 400;
-  letter-spacing: normal;
-}
-.checkout .maincheckout .heading .subtotal {
-  color: black;
-  font-size: 15px;
-}
-.checkout .maincheckout .detailcheckout {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.checkout .maincheckout .detailcheckout .listcheckout {
-  width: 100%;
-  display: flex;
-  align-items: left;
-  flex-direction: column;
-}
-.checkout .maincheckout .detailcheckout .listcheckout .thumb {
-  width: 90px;
-}
-.checkout .maincheckout .detailcheckout .listcheckout .description {
-  padding: 15px;
-}
-.checkout .maincheckout .detailcheckout .listcheckout .description h3, .checkout .maincheckout .detailcheckout .listcheckout .description p {
-  margin-bottom: 0;
-}
-.checkout .maincheckout .detailcheckout .listcheckout input {
-  margin: 10px 0 15px;
-}
-.checkout .maincheckout .detailcheckout .price {
-  font-weight: 600;
-}
-.checkout .maincheckout .agrement {
-  display: flex;
-  align-items: center;
-}
-.checkout .maincheckout .agrement label {
-  padding-left: 5px;
-}
-.checkout .maincheckout .btn-main {
-  width: 100%;
-  margin: 30px auto;
-  margin-bottom: 15px !important;
-}
-.checkout .maincheckout .bold {
-  color: black;
-  font-weight: bold;
 }
